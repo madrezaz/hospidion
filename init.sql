@@ -28,9 +28,9 @@ create table physicians (
 
 create table nurses (
     personnel_id varchar(10) primary key,
-    first_name varchar(255) primary key,
-    last_name varchar(255) primary key,
-    national_code varchar(10) primary key,
+    first_name varchar(255),
+    last_name varchar(255),
+    national_code varchar(10),
     section varchar(255) not null,
     employment_date date not null,
     age int not null,
@@ -69,9 +69,9 @@ create table patients (
 
 create table employees (
     personnel_id varchar(10) primary key,
-    first_name varchar(255) primary key,
-    last_name varchar(255) primary key,
-    national_code varchar(10) primary key,
+    first_name varchar(255),
+    last_name varchar(255),
+    national_code varchar(10),
     role varchar(255) not null,
     employment_date date not null,
     age int not null,
