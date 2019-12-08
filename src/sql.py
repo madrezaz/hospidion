@@ -18,18 +18,15 @@ class SqlQuery:
     @staticmethod
     def parse(query: str) -> 'SqlQuery':
         query = " ".join(query.split())
-        try:
-            operation = query[:7].lower()
-            if operation == 'select ':
-                return SelectQuery(query)
-            elif operation == 'insert ' and query[7:12] == 'into ':
-                return InsertQuery(query)
-            elif operation == 'update ':
-                return UpdateQuery(query)
-            elif operation == 'delete ' and query[7:12] == 'from ':
-                return DeleteQuery(query)
-        except IndexError:
-            pass
+        operation = query[:7].lower()
+        if operation == 'select ':
+            return SelectQuery(query)
+        elif operation == 'insert ' and query[7:12] == 'into ':
+            return InsertQuery(query)
+        elif operation == 'update ':
+            return UpdateQuery(query)
+        elif operation == 'delete ' and query[7:12] == 'from ':
+            return DeleteQuery(query)
         raise Exception("Invalid query")
 
 
