@@ -1,5 +1,5 @@
-db_name = 'hospidion'
-db_user = 'hospidion'
-db_password = '123456'
+db_name = 'dionDB'
+db_user = 'postgres'
+db_password = 'amnik1375'
 db_host = 'localhost'
 db_port = 5432

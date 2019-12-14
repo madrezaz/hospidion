@@ -151,7 +151,7 @@ class SimpleCondition(Condition):
         self.rvalue = rvalue
 
     def __str__(self) -> str:
-        return "%s %s %s" % (self.lvalue, self.operator.value, self.rvalue)
+        return "%s %s '%s'" % (self.lvalue, self.operator.value, self.rvalue)
 
     class Operator(Enum):
         EQUAL = '='
