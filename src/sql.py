@@ -96,7 +96,7 @@ class UpdateQuery(SqlQuery):
         self.value = value
 
     def __str__(self):
-        return "update %s set %s = %s where %s" % (self.table, self.column, self.value, self.conditions)
+        return "update %s set %s = '%s' where %s" % (self.table, self.column, self.value, self.conditions)
 
 
 class DeleteQuery(SqlQuery):
