@@ -1,7 +1,11 @@
 create table users (
     username varchar(255) primary key,
     password varchar(255) not null,
-    type varchar(20) not null
+    type varchar(20) not null,
+    id varchar(10) not null,
+    asl smallint not null,
+    rsl smallint not null,
+    wsl smallint not null
 );
 
 create table physicians (
@@ -16,14 +20,10 @@ create table physicians (
     age int not null,
     gender char not null,
     salary int not null,
-    marital_status char not null,
-    username varchar(255) not null references users(username) ON DELETE CASCADE,
-    s_asl smallint not null default 3,
-    s_rsl smallint not null default 3,
-    s_wsl smallint not null default 3,
-    o_asl smallint not null default 3,
-    o_msl smallint not null default 4,
-    o_csl smallint not null default 3
+    married bool not null,
+    asl smallint not null,
+    msl smallint not null,
+    csl smallint not null
 );
 
 create table nurses (
@@ -36,18 +36,14 @@ create table nurses (
     age int not null,
     gender char not null,
     salary int not null,
-    marital_status char not null,
-    username varchar(255) not null references users(username) ON DELETE CASCADE,
-    s_asl smallint not null default 2,
-    s_rsl smallint not null default 2,
-    s_wsl smallint not null default 2,
-    o_asl smallint not null default 3,
-    o_msl smallint not null default 4,
-    o_csl smallint not null default 3
+    married bool not null,
+    asl smallint not null,
+    msl smallint not null,
+    csl smallint not null
 );
 
 create table patients (
-    reception_id serial primary key,
+    reception_id varchar(10) primary key,
     first_name varchar(255) not null,
     last_name varchar(255) not null,
     national_code varchar(10) not null,
@@ -58,13 +54,9 @@ create table patients (
     physician varchar(10) not null references physicians(personnel_id) on delete cascade,
     nurse varchar(255) not null references nurses(personnel_id) on delete cascade,
     drugs text,
-    username varchar(255) not null references users(username) ON DELETE CASCADE,
-    s_asl smallint not null default 1,
-    s_rsl smallint not null default 1,
-    s_wsl smallint not null default 1,
-    o_asl smallint not null default 3,
-    o_msl smallint not null default 4,
-    o_csl smallint not null default 3
+    asl smallint not null,
+    msl smallint not null,
+    csl smallint not null
 );
 
 create table employees (
@@ -73,44 +65,44 @@ create table employees (
     last_name varchar(255),
     national_code varchar(10),
     role varchar(255) not null,
+    section varchar(255) not null,
     employment_date date not null,
     age int not null,
     gender char not null,
     salary int not null,
-    marital_status char not null,
-    username varchar(255) not null references users(username) ON DELETE CASCADE,
-    s_asl smallint not null default 3,
-    s_rsl smallint not null default 4,
-    s_wsl smallint not null default 3,
-    o_asl smallint not null default 3,
-    o_msl smallint not null default 4,
-    o_csl smallint not null default 3
+    married bool not null,
+    asl smallint not null,
+    msl smallint not null,
+    csl smallint not null
 );
 
 create table reports (
     id serial primary key,
     username varchar(255) not null references users(username) on delete cascade,
     report text,
-    o_asl smallint not null,
-    o_msl smallint not null,
-    o_csl smallint not null
+    asl smallint not null,
+    msl smallint not null,
+    csl smallint not null
 );
 
 create table inspector_reports (
     id serial primary key,
     username varchar(255) not null references users(username) on delete cascade,
     report text,
-    o_asl smallint not null,
-    o_msl smallint not null,
-    o_csl smallint not null
+    asl smallint not null,
+    msl smallint not null,
+    csl smallint not null
 );
 
 create table manager_reports (
     id serial primary key,
     username varchar(255) not null references users(username) on delete cascade,
     report text,
-    report_id int unique references reports(id) on delete cascade,
-    o_asl smallint not null,
-    o_msl smallint not null,
-    o_csl smallint not null
+    asl smallint not null,
+    msl smallint not null,
+    csl smallint not null
 );
+
+insert into employees values ('0000000000', 'Mohammadreza', 'Ziraki', '2282400860', 'system_manager', 'hospital',
+                              '2019-12-19', 22, 'M', 10000000, false, 4, 4, 3);
+insert into users values ('root', 'admin', 'employees', '0000000000', 4, 4, 4);

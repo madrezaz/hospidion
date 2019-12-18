@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="fa">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{{ title }}</title>
+
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet" crossorigin="anonymous">
+    <link href="{{ url_for('static', filename='css/font-awesome.min.css') }}" rel="stylesheet" crossorigin="anonymous">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+  </head>
+  <body>
+    <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
+      <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">Sharif [Mental]Hospital</a>
+      <ul class="navbar-nav px-3">
+        <li class="nav-item text-nowrap">
+          <a class="nav-link" href="/logout">Logout</a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="container-fluid">
+      <div class="row">
+        <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+          <div class="sidebar-sticky">
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link{% if active == 0 %} active{% endif %}" href="{{ "#" if active == 0 else "/" }}">
+                  Dashboard
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link{% if active == 1 %} active{% endif %}" href="{{ "#" if active == 1 else "/physicians" }}">
+                  Physicians
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link{% if active == 2 %} active{% endif %}" href="{{ "#" if active == 2 else "/" }}">
+                  Patients
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link{% if active == 3 %} active{% endif %}" href="{{ "#" if active == 3 else "/" }}">
+                  Nurses
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link{% if active == 4 %} active{% endif %}" href="{{ "#" if active == 4 else "/" }}">
+                  Employees
+                </a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+
+        <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+          {% block content %} {% endblock %}
+        </main>
+      </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/jquery-3.4.1.slim.min.js') }}" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}" crossorigin="anonymous"></script>
+</html>

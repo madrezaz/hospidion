@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% set title = 'Create Physician' %}
+
+{% block content %}
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Create Physician</h1>
+    </div>
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+          {{ error }}
+        </div>
+    {% endif %}
+
+    <form action="/physicians/create" method="post">
+      <div class="form-row">
+        <div class="form-group col-md-4">
+          <label for="id">id</label>
+          <input name="personnel_id" class="form-control" id="id" placeholder="id">
+        </div>
+        <div class="form-group col-md-4">
+          <label for="first-name">First Name</label>
+          <input name="first_name" class="form-control" id="first-name" placeholder="First Name">
+        </div>
+          <div class="form-group col-md-4">
+          <label for="last-name">Last Name</label>
+          <input name="last_name" class="form-control" id="last-name" placeholder="Last Name">
+        </div>
+      </div>
+        <div class="form-row">
+        <div class="form-group col-md-4">
+          <label for="national-code">National Code</label>
+          <input name="national_code" class="form-control" id="national-code" placeholder="National Code">
+        </div>
+        <div class="form-group col-md-4">
+          <label for="proficiency">Proficiency</label>
+          <input name="proficiency" class="form-control" id="proficiency" placeholder="Proficiency">
+        </div>
+          <div class="form-group col-md-4">
+          <label for="management_role">Management Role</label>
+          <select name="management_role" id="management_role" class="form-control">
+            <option value="section_manager">Section Manager</option>
+            <option value="hospital_manager">Hospital Manager</option>
+            <option value="medical_vp">Medical VP</option>
+            <option value="financial_vp">Financial VP</option>
+            <option value="administrative_vp">Administrative VP</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-md-4">
+          <label for="section">Section</label>
+          <select name="section" id="section" class="form-control">
+            <option value="general">General</option>
+            <option value="speciality">Speciality</option>
+            <option value="super_speciality">Super Speciality</option>
+            <option value="emergency">Emergency</option>
+          </select>
+        </div>
+        <div class="form-group col-md-4">
+          <label for="employment_date">Employment Date</label>
+          <input type="date" name="employment_date" class="form-control" id="employment_date" placeholder="Employment Date">
+        </div>
+          <div class="form-group col-md-4">
+          <label for="age">Age</label>
+          <input type="number" name="age" class="form-control" id="age" placeholder="Age">
+        </div>
+      </div>
+        <div class="form-row">
+        <div class="form-group col-md-4">
+          <label for="gender">Gender</label>
+          <select name="gender" id="gender" class="form-control">
+            <option value="M">Male</option>
+            <option value="F">Female</option>
+          </select>
+        </div>
+        <div class="form-group col-md-4">
+          <label for="salary">Salary</label>
+          <input type="number" name="salary" class="form-control" id="salary" placeholder="Salary">
+        </div>
+          <div class="form-group col-md-4">
+          <label for="marital_status">Marital Status</label>
+          <select name="marital_status" id="marital_status" class="form-control">
+            <option value="M">Married</option>
+            <option value="S">Single</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary bg-dark">Create</button>
+    </form>
+{% endblock %}

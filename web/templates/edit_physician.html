@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% set title = 'Edit Physician' %}
+
+{% block content %}
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Physician {{ p[0] }}</h1>
+    </div>
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+          {{ error }}
+        </div>
+    {% endif %}
+
+    <form action="/physicians/edit/{{ p[0] }}" method="post">
+      <div class="form-row">
+        <div class="form-group col-md-4">
+          <label for="id">id</label>
+          <input name="personnel_id" class="form-control" id="id" placeholder="id" value="{{ p[0] }}">
+        </div>
+        <div class="form-group col-md-4">
+          <label for="first-name">First Name</label>
+          <input name="first_name" class="form-control" id="first-name" placeholder="First Name" value="{{ p[1] }}">
+        </div>
+          <div class="form-group col-md-4">
+          <label for="last-name">Last Name</label>
+          <input name="last_name" class="form-control" id="last-name" placeholder="Last Name" value="{{ p[2] }}">
+        </div>
+      </div>
+        <div class="form-row">
+        <div class="form-group col-md-4">
+          <label for="national-code">National Code</label>
+          <input name="national_code" class="form-control" id="national-code" placeholder="National Code" value="{{ p[3] }}">
+        </div>
+        <div class="form-group col-md-4">
+          <label for="proficiency">Proficiency</label>
+          <input name="proficiency" class="form-control" id="proficiency" placeholder="Proficiency" value="{{ p[4] }}">
+        </div>
+          <div class="form-group col-md-4">
+          <label for="management_role">Management Role</label>
+          <select name="management_role" id="management_role" class="form-control">
+            <option value="section_manager" {% if p[5] == 'section_manager' %}selected{% endif %}>Section Manager</option>
+            <option value="hospital_manager" {% if p[5] == 'hospital_manager' %}selected{% endif %}>Hospital Manager</option>
+            <option value="medical_vp" {% if p[5] == 'medical_vp' %}selected{% endif %}>Medical VP</option>
+            <option value="financial_vp" {% if p[5] == 'financial_vp' %}selected{% endif %}>Financial VP</option>
+            <option value="administrative_vp" {% if p[5] == 'administrative_vp' %}selected{% endif %}>Administrative VP</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-md-4">
+          <label for="section">Section</label>
+          <select name="section" id="section" class="form-control">
+            <option value="general" {% if p[6] == 'general' %}selected{% endif %}>General</option>
+            <option value="speciality" {% if p[6] == 'speciality' %}selected{% endif %}>Speciality</option>
+            <option value="super_speciality" {% if p[6] == 'super_speciality' %}selected{% endif %}>Super Speciality</option>
+            <option value="emergency" {% if p[6] == 'emergency' %}selected{% endif %}>Emergency</option>
+          </select>
+        </div>
+        <div class="form-group col-md-4">
+          <label for="employment_date">Employment Date</label>
+          <input type="date" name="employment_date" class="form-control" id="employment_date" placeholder="Employment Date" value="{{ p[7] }}">
+        </div>
+          <div class="form-group col-md-4">
+          <label for="age">Age</label>
+          <input type="number" name="age" class="form-control" id="age" placeholder="Age" value="{{ p[8] }}">
+        </div>
+      </div>
+        <div class="form-row">
+        <div class="form-group col-md-4">
+          <label for="gender">Gender</label>
+          <select name="gender" id="gender" class="form-control">
+            <option value="M" {% if p[9] == 'M' %}selected{% endif %}>Male</option>
+            <option value="F" {% if p[9] == 'F' %}selected{% endif %}>Female</option>
+          </select>
+        </div>
+        <div class="form-group col-md-4">
+          <label for="salary">Salary</label>
+          <input type="number" name="salary" class="form-control" id="salary" placeholder="Salary" value="{{ p[10] }}">
+        </div>
+          <div class="form-group col-md-4">
+          <label for="marital_status">Marital Status</label>
+          <select name="marital_status" id="marital_status" class="form-control">
+            <option value="M" {% if p[11] == 'M' %}selected{% endif %}>Married</option>
+            <option value="S" {% if p[11] == 'S' %}selected{% endif %}>Single</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary bg-dark">Update</button>
+    </form>
+{% endblock %}

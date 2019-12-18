@@ -1,5 +1,15 @@
-from enum import Enum
+import numbers
+from ast import literal_eval
+from enum import Enum, IntEnum
 import re
+
+
+def prepare(value):
+    if issubclass(type(value), IntEnum) or isinstance(value, numbers.Number):
+        return str(value)
+    if issubclass(type(value), Enum):
+        return "'%s'" % value
+    return "'%s'" % value
 
 
 class SqlQuery:
@@ -10,10 +20,14 @@ class SqlQuery:
     def and_condition(self, condition):
         if self.conditions is not None:
             self.conditions = self.conditions.and_condition(condition)
+        elif type(self) is not InsertQuery:
+            self.conditions = condition
 
     def or_condition(self, condition):
         if self.conditions is not None:
             self.conditions = self.conditions.or_condition(condition)
+        elif type(self) is not InsertQuery:
+            self.conditions = condition
 
     @staticmethod
     def parse(query: str) -> 'SqlQuery':
@@ -27,6 +41,8 @@ class SqlQuery:
             return UpdateQuery(query)
         elif operation == 'delete ' and query[7:12] == 'from ':
             return DeleteQuery(query)
+        elif query.lower() == 'my privacy':
+            return MyPrivacyQuery()
         raise Exception("Invalid query")
 
 
@@ -41,16 +57,21 @@ class SelectQuery(SqlQuery):
 
         where_match = re.search(" where ", query, flags=re.IGNORECASE)
         if not where_match:
-            raise Exception("Invalid query")
-        where_span = where_match.span()
-        table = query[:where_span[0]]
-        conditions = query[where_span[1]:]
+            table = query
+            conditions = None
+        else:
+            where_span = where_match.span()
+            table = query[:where_span[0]]
+            conditions = Condition.parse(query[where_span[1]:])
 
-        super().__init__(table, Condition.parse(conditions))
+        super().__init__(table, conditions)
         self.target = target
 
     def __str__(self):
-        return "select %s from %s where %s" % (self.target, self.table, self.conditions)
+        s = "select %s from %s" % (self.target, self.table)
+        if self.conditions is not None:
+            s += " where %s" % self.conditions
+        return s
 
 
 class InsertQuery(SqlQuery):
@@ -60,7 +81,7 @@ class InsertQuery(SqlQuery):
             raise Exception("Invalid query")
         values_span = values_match.span()
         table = query[12:values_span[0]]
-        values = query[values_span[1]:]
+        values = literal_eval(query[values_span[1]:])
         super().__init__(table, None)
         self.values = values
 
@@ -79,46 +100,59 @@ class UpdateQuery(SqlQuery):
 
         where_match = re.search(" where ", query, flags=re.IGNORECASE)
         if not where_match:
-            raise Exception("Invalid query")
-        where_span = where_match.span()
-        conditions = query[where_span[1]:]
-        query = query[:where_span[0]]
+            conditions = None
+        else:
+            where_span = where_match.span()
+            conditions = Condition.parse(query[where_span[1]:])
+            query = query[:where_span[0]]
 
         equal_match = re.search(" = ", query, flags=re.IGNORECASE)
         if not equal_match:
             raise Exception("Invalid query")
-        where_span = equal_match.span()
-        column = query[:where_span[0]]
-        value = query[where_span[1]:]
+        equal_span = equal_match.span()
+        column = query[:equal_span[0]]
+        value = query[equal_span[1]:]
 
-        super().__init__(table, Condition.parse(conditions))
-        self.column = column
-        self.value = value
+        super().__init__(table, conditions)
+        self.setters = [(column, value)]
 
     def __str__(self):
-        return "update %s set %s = %s where %s" % (self.table, self.column, self.value, self.conditions)
+        s = "update %s set %s" % (self.table, ", ".join(["%s = %s" % (col, val) for col, val in self.setters]))
+        if self.conditions is not None:
+            s += " where %s" % self.conditions
+        return s
 
 
 class DeleteQuery(SqlQuery):
     def __init__(self, query):
         where_match = re.search(" where ", query, flags=re.IGNORECASE)
         if not where_match:
-            raise Exception("Invalid query")
-        where_span = where_match.span()
-        table = query[12:where_span[0]]
-        conditions = query[where_span[1]:]
-        super().__init__(table, Condition.parse(conditions))
+            table = query[12:]
+            conditions = None
+        else:
+            where_span = where_match.span()
+            table = query[12:where_span[0]]
+            conditions = Condition.parse(query[where_span[1]:])
+        super().__init__(table, conditions)
 
     def __str__(self):
-        return "delete from %s where %s" % (self.table, self.conditions)
+        s = "delete from %s" % self.table
+        if self.conditions is not None:
+            s += " where %s" % self.conditions
+        return s
+
+
+class MyPrivacyQuery(SqlQuery):
+    def __init__(self):
+        super().__init__(None, None)
 
 
 class Condition:
     def and_condition(self, cond: 'Condition') -> 'Condition':
-        return BinaryCondition(self, BinaryCondition.Operator.AND, cond)
+        return BinaryCondition(self, BinaryCondition.Op.AND, cond)
 
     def or_condition(self, cond: 'Condition') -> 'Condition':
-        return BinaryCondition(self, BinaryCondition.Operator.OR, cond)
+        return BinaryCondition(self, BinaryCondition.Op.OR, cond)
 
     @staticmethod
     def parse(string) -> 'Condition':
@@ -136,24 +170,24 @@ class Condition:
         not_match = re.search(" not ", string, flags=re.IGNORECASE)
         if not_match:
             span = not_match.span()
-            return UnaryCondition(UnaryCondition.Operator.NOT, Condition.parse(string[span[1]:]))
+            return UnaryCondition(UnaryCondition.Op.NOT, Condition.parse(string[span[1]:]))
 
         pieces = string.split()
         if len(pieces) != 3:
             raise Exception("Invalid Query")
-        return SimpleCondition(pieces[0], SimpleCondition.Operator(pieces[1]), pieces[2])
+        return SimpleCondition(pieces[0], SimpleCondition.Op(pieces[1]), pieces[2])
 
 
 class SimpleCondition(Condition):
-    def __init__(self, lvalue: str, operator: 'Operator', rvalue: str):
+    def __init__(self, lvalue, operator: 'Op', rvalue):
         self.lvalue = lvalue
         self.operator = operator
         self.rvalue = rvalue
 
     def __str__(self) -> str:
-        return "%s %s '%s'" % (self.lvalue, self.operator.value, self.rvalue)
+        return "%s %s %s" % (self.lvalue, self.operator.value, self.rvalue)
 
-    class Operator(Enum):
+    class Op(Enum):
         EQUAL = '='
         GT = '>'
         GTE = '>='
@@ -170,7 +204,7 @@ class BinaryCondition(Condition):
     def __str__(self):
         return "(%s) %s (%s)" % (self.lvalue, self.operator.value, self.rvalue)
 
-    class Operator(Enum):
+    class Op(Enum):
         AND = "AND"
         OR = "OR"
 
@@ -183,5 +217,5 @@ class UnaryCondition(Condition):
     def __str__(self):
         return "%s %s" % (self.operator.value, self.rvalue)
 
-    class Operator(Enum):
+    class Op(Enum):
         NOT = "NOT"
