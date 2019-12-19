@@ -3,8 +3,8 @@ create table users (
     password varchar(255) not null,
     type varchar(20) not null,
     id varchar(10) not null,
-    asl smallint not null,
     rsl smallint not null,
+    asl smallint not null,
     wsl smallint not null
 );
 
@@ -21,8 +21,8 @@ create table physicians (
     gender char not null,
     salary int not null,
     married bool not null,
-    asl smallint not null,
     msl smallint not null,
+    asl smallint not null,
     csl smallint not null
 );
 
@@ -37,8 +37,8 @@ create table nurses (
     gender char not null,
     salary int not null,
     married bool not null,
-    asl smallint not null,
     msl smallint not null,
+    asl smallint not null,
     csl smallint not null
 );
 
@@ -54,8 +54,8 @@ create table patients (
     physician varchar(10) not null references physicians(personnel_id) on delete cascade,
     nurse varchar(255) not null references nurses(personnel_id) on delete cascade,
     drugs text,
-    asl smallint not null,
     msl smallint not null,
+    asl smallint not null,
     csl smallint not null
 );
 
@@ -71,8 +71,8 @@ create table employees (
     gender char not null,
     salary int not null,
     married bool not null,
-    asl smallint not null,
     msl smallint not null,
+    asl smallint not null,
     csl smallint not null
 );
 
@@ -80,8 +80,8 @@ create table reports (
     id serial primary key,
     username varchar(255) not null references users(username) on delete cascade,
     report text,
-    asl smallint not null,
     msl smallint not null,
+    asl smallint not null,
     csl smallint not null
 );
 
@@ -89,8 +89,8 @@ create table inspector_reports (
     id serial primary key,
     username varchar(255) not null references users(username) on delete cascade,
     report text,
-    asl smallint not null,
     msl smallint not null,
+    asl smallint not null,
     csl smallint not null
 );
 
@@ -98,8 +98,8 @@ create table manager_reports (
     id serial primary key,
     username varchar(255) not null references users(username) on delete cascade,
     report text,
-    asl smallint not null,
     msl smallint not null,
+    asl smallint not null,
     csl smallint not null
 );
 

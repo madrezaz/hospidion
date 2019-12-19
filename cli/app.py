@@ -1,4 +1,6 @@
-from core.dion import QueryExecutor
+import psycopg2
+
+from core.dion import QueryExecutor, SqlException
 from core.models import *
 
 
@@ -10,7 +12,8 @@ def authenticate(username, password):
     if user is not None:
         table = Table(user[2])
         pk = tables[table].columns[0]
-        cur.execute("select * from %s where %s = %s", (table, pk, user[0]))
+        q = "select * from %s where %s = " % (table.value, pk)
+        cur.execute(q + "%s", (user[3],))
         entity = cur.fetchone()
         session = Session(user, entity)
     cur.close()
@@ -29,14 +32,26 @@ def main():
             print("Invalid username or password")
 
     executor = QueryExecutor(session)
-    print("+++Hello %s +++" % session.user[0])
+    print("+++ Hello %s +++" % session.user[0])
     query = input("$ ")
     while query.lower() != 'q':
-        result = executor.execute(query)
-        if type(result) is list:
-            print("\n".join(str(r) for r in result))
-        else:
-            print("%d rows affected" % result)
+        try:
+            result = executor.execute(query)
+            if type(result) is list:
+                print("\n".join(str(r) for r in result))
+            elif type(result) is Privacy:
+                print("Readers:")
+                print(result.readers)
+                print("Writers:")
+                print(result.readers)
+            else:
+                print("%d rows affected" % result)
+        except DionException as ex:
+            print("Error:", ex.message)
+        except SqlException as ex:
+            print("Error:", ex.message)
+        except psycopg2._psycopg.Error as ex:
+            print("Error: ", ex)
         query = input("$ ")
 
 

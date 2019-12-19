@@ -5,11 +5,19 @@ import re
 
 
 def prepare(value):
-    if issubclass(type(value), IntEnum) or isinstance(value, numbers.Number):
+    if issubclass(type(value), IntEnum):
+        return str(value.value)
+    if isinstance(value, numbers.Number):
         return str(value)
     if issubclass(type(value), Enum):
-        return "'%s'" % value
+        return "'%s'" % value.value
     return "'%s'" % value
+
+
+class SqlException(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+        self.message = message
 
 
 class SqlQuery:
@@ -43,14 +51,20 @@ class SqlQuery:
             return DeleteQuery(query)
         elif query.lower() == 'my privacy':
             return MyPrivacyQuery()
-        raise Exception("Invalid query")
+        elif query.lower()[:12] == 'send report ':
+            text = query[12:]
+            if text[0] == text[-1] == "'" or text[0] == text[-1] == '"':
+                return SendReportQuery(text[1:-1])
+        elif query.lower()[:22] == 'migrate reports where ':
+            return MigrateReportQuery(Condition.parse(query[22:]))
+        raise SqlException("Invalid query")
 
 
 class SelectQuery(SqlQuery):
     def __init__(self, query):
         from_match = re.search(" from ", query, flags=re.IGNORECASE)
         if not from_match:
-            raise Exception("Invalid query")
+            raise SqlException("Invalid query")
         from_span = from_match.span()
         target = query[7:from_span[0]]
         query = query[from_span[1]:]
@@ -78,22 +92,25 @@ class InsertQuery(SqlQuery):
     def __init__(self, query):
         values_match = re.search(" values ", query, flags=re.IGNORECASE)
         if not values_match:
-            raise Exception("Invalid query")
+            raise SqlException("Invalid query")
         values_span = values_match.span()
         table = query[12:values_span[0]]
-        values = literal_eval(query[values_span[1]:])
+        values = query[values_span[1]:]
+        if values[0] != '(' or values[-1] != ')':
+            raise SqlException("Invalid query")
+        values = ("".join(values[1:-1].split())).split(",")
         super().__init__(table, None)
-        self.values = values
+        self.values = tuple(values)
 
     def __str__(self):
-        return "insert into %s values %s" % (self.table, self.values)
+        return "insert into %s values %s" % (self.table, "(%s)" % (", ".join(self.values)))
 
 
 class UpdateQuery(SqlQuery):
     def __init__(self, query):
         set_match = re.search(" set ", query, flags=re.IGNORECASE)
         if not set_match:
-            raise Exception("Invalid query")
+            raise SqlException("Invalid query")
         set_span = set_match.span()
         table = query[7:set_span[0]]
         query = query[set_span[1]:]
@@ -108,7 +125,7 @@ class UpdateQuery(SqlQuery):
 
         equal_match = re.search(" = ", query, flags=re.IGNORECASE)
         if not equal_match:
-            raise Exception("Invalid query")
+            raise SqlException("Invalid query")
         equal_span = equal_match.span()
         column = query[:equal_span[0]]
         value = query[equal_span[1]:]
@@ -147,6 +164,17 @@ class MyPrivacyQuery(SqlQuery):
         super().__init__(None, None)
 
 
+class SendReportQuery(SqlQuery):
+    def __init__(self, text):
+        super().__init__(None, None)
+        self.text = text
+
+
+class MigrateReportQuery(SqlQuery):
+    def __init__(self, conditions: 'Condition'):
+        super().__init__(None, conditions)
+
+
 class Condition:
     def and_condition(self, cond: 'Condition') -> 'Condition':
         return BinaryCondition(self, BinaryCondition.Op.AND, cond)
@@ -174,7 +202,7 @@ class Condition:
 
         pieces = string.split()
         if len(pieces) != 3:
-            raise Exception("Invalid Query")
+            raise SqlException("Invalid Query")
         return SimpleCondition(pieces[0], SimpleCondition.Op(pieces[1]), pieces[2])
 
 
