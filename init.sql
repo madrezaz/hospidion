@@ -104,5 +104,5 @@ create table manager_reports (
 );
 
 insert into employees values ('0000000000', 'Mohammadreza', 'Ziraki', '2282400860', 'system_manager', 'hospital',
-                              '2019-12-19', 22, 'M', 10000000, false, 4, 4, 3);
-insert into users values ('root', 'admin', 'employees', '0000000000', 4, 4, 4);
+                              '2019-12-19', 22, 'M', 10000000, false, 4, 4, 4);
+insert into users values ('root', 'admin', 'employees', '0000000000', 4, 4, 3);

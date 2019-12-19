@@ -1,6 +1,8 @@
 from functools import wraps
 from flask import Flask, request, session, render_template, redirect, url_for
-from web.auth import do_the_login
+
+from core.auth import create_session
+from core.dion import QueryExecutor
 import config
 
 app = Flask(__name__)
@@ -12,7 +14,7 @@ def login_required(func):
     def wrapper(*args, **kwargs):
         if 'username' not in session:
             return redirect(url_for('login'))
-        kwargs['user'] = session['username']
+        kwargs['user_session'] = create_session(session['username'])
         return func(*args, **kwargs)
 
     return wrapper
@@ -20,15 +22,20 @@ def login_required(func):
 
 @app.route('/')
 @login_required
-def index(user):
-    return render_template('index.html')
+def index(user_session):
+    executor = QueryExecutor(user_session)
+    privacy = executor.execute("my privacy")
+    readers = ", ".join([r[0] for r in privacy.readers])
+    writers = ", ".join([r[0] for r in privacy.writers])
+    return render_template('index.html', readers=readers, writers=writers, user_session=user_session)
 
 
 @app.route('/physicians')
 @login_required
-def physicians(user):
-    return render_template('physicians.html', list=[('1', 'Mohammadreza', 'Ziraki', '2282400860', 'Nothing', 'Manager',
-                                                     'General', '2020/01/01', '22', 'M', '4000000', 'S')])
+def physicians(user_session):
+    executor = QueryExecutor(user_session)
+    res = executor.execute("select * from physicians")
+    return render_template('physicians.html', list=res)
 
 
 @app.route('/physicians/create', methods=['GET', 'POST'])
@@ -64,7 +71,7 @@ def login():
         return redirect(url_for('index'))
     if request.method == 'POST':
         username = request.form['username']
-        if do_the_login(username, request.form['password']) is not None:
+        if create_session(username, request.form['password']) is not None:
             session['username'] = username
             return redirect(url_for('index'))
         return render_template('login.html', failed=True)

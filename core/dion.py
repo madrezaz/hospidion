@@ -125,15 +125,33 @@ class QueryExecutor:
         raise DionException("Could not execute query")
 
     def privacy(self):
+        readers = []
+        writers = []
+
         o_msl = self.session.entity[-3]
         o_asl = self.session.entity[-2]
         o_csl = self.session.entity[-1]
         connection, cursor = QueryExecutor.create_db_connection()
 
-        cursor.execute("select username from users where rsl >= %s and asl <= %s", (o_asl, o_msl))
-        readers = cursor.fetchall()
-        cursor.execute("select username from users where wsl <= %s and asl >= %s", (o_asl, o_csl))
-        writers = cursor.fetchall()
+        sections = section_dominance_reverse[self.session.get_section()]
+        cond = " or ".join(["t.section = %s" % prepare(sec) for sec in sections])
+
+        for table in ["physicians", "nurses", "employees"]:
+            cursor.execute("select username from users as u inner join " + table + " as t on u.id = t.personnel_id " +
+                           "where u.rsl >= %s and u.asl <= %s and (" + cond + ")", (o_asl, o_msl))
+            readers += cursor.fetchall()
+
+            cursor.execute("select username from users as u inner join " + table + " as t on u.id = t.personnel_id " +
+                           "where u.wsl <= %s and u.asl >= %s and (" + cond + ")", (o_asl, o_csl))
+            writers += cursor.fetchall()
+
+        cursor.execute("select username from users as u inner join patients as t on u.id = t.reception_id " +
+                       "where u.rsl >= %s and u.asl <= %s and (" + cond + ")", (o_asl, o_msl))
+        readers += cursor.fetchall()
+
+        cursor.execute("select username from users as u inner join patients as t on u.id = t.reception_id " +
+                       "where u.wsl <= %s and u.asl >= %s and (" + cond + ")", (o_asl, o_csl))
+        writers += cursor.fetchall()
 
         cursor.close()
         connection.close()

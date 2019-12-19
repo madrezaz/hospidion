@@ -1,24 +1,9 @@
 import psycopg2
 import getpass
+
+from core.auth import create_session
 from core.dion import QueryExecutor, SqlException
 from core.models import *
-
-
-def authenticate(username, password):
-    con, cur = QueryExecutor.create_db_connection()
-    cur.execute("select * from users where username = %s and password = %s", (username, password))
-    user = cur.fetchone()
-    session = None
-    if user is not None:
-        table = Table(user[2])
-        pk = tables[table].columns[0]
-        q = "select * from %s where %s = " % (table.value, pk)
-        cur.execute(q + "%s", (user[3],))
-        entity = cur.fetchone()
-        session = Session(user, entity)
-    cur.close()
-    con.close()
-    return session
 
 
 def main():
@@ -27,7 +12,7 @@ def main():
     while session is None:
         username = input("Username: ")
         password = getpass.getpass(prompt="Password: ")
-        session = authenticate(username, password)
+        session = create_session(username, password)
         if session is None:
             print("Invalid username or password")
 

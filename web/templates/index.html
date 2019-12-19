@@ -3,7 +3,152 @@
 {% set title = 'Dashboard' %}
 
 {% block content %}
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Dashboard</h1>
-</div>
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Dashboard</h1>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <h3>My Info</h3>
+            <br>
+            <h5><strong>{{ user_session.user[0] }} - {{ user_session.entity[1] }} {{ user_session.entity[2] }}</strong>
+                {% if user_session.user[2] == 'patients' %}
+                    (Patient)
+                {% elif user_session.user[2] == 'physicians' %}
+                    (Physician)
+                {% elif user_session.user[2] == 'nurses' %}
+                    (Nurse)
+                {% elif user_session.user[2] == 'employees' %}
+                    (Employee)
+                {% endif %}
+            </h5>
+            <table class="table">
+                <tr>
+                    <th scope="row">Id</th>
+                    <td>{{ user_session.entity[0] }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">National Code</th>
+                    <td>{{ user_session.entity[3] }}</td>
+                </tr>
+                {% if user_session.user[2] == 'patients' %}
+                    <tr>
+                        <th scope="row">Age</th>
+                        <td>{{ user_session.entity[4] }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Gender</th>
+                        <td>{{ user_session.entity[5] }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Sickness</th>
+                        <td>{{ user_session.entity[6] }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Section</th>
+                        <td>{{ user_session.entity[7] }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Drugs</th>
+                        <td>{{ user_session.entity[10] }}</td>
+                    </tr>
+                {% elif user_session.user[2] == 'physicians' %}
+                    <tr>
+                        <th scope="row">Proficiency</th>
+                        <td>{{ user_session.entity[4] }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Management Role</th>
+                        <td>{{ user_session.entity[5] }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Section</th>
+                        <td>{{ user_session.entity[6] }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Employment Date</th>
+                        <td>{{ user_session.entity[7] }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Age</th>
+                        <td>{{ user_session.entity[8] }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Gender</th>
+                        <td>{{ user_session.entity[9] }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Salary</th>
+                        <td>{{ user_session.entity[10] }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Married</th>
+                        <td>{{ user_session.entity[11] }}</td>
+                    </tr>
+                {% elif user_session.user[2] == 'nurses' %}
+                    <tr>
+                        <th scope="row">Section</th>
+                        <td>{{ user_session.entity[4] }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Employment Date</th>
+                        <td>{{ user_session.entity[5] }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Age</th>
+                        <td>{{ user_session.entity[6] }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Gender</th>
+                        <td>{{ user_session.entity[7] }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Salary</th>
+                        <td>{{ user_session.entity[8] }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Married</th>
+                        <td>{{ user_session.entity[9] }}</td>
+                    </tr>
+                {% elif user_session.user[2] == 'employees' %}
+                    <tr>
+                        <th scope="row">Role</th>
+                        <td>{{ user_session.entity[4] }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Section</th>
+                        <td>{{ user_session.entity[5] }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Employment Date</th>
+                        <td>{{ user_session.entity[6] }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Age</th>
+                        <td>{{ user_session.entity[7] }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Gender</th>
+                        <td>{{ user_session.entity[8] }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Salary</th>
+                        <td>{{ user_session.entity[9] }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Married</th>
+                        <td>{{ user_session.entity[10] }}</td>
+                    </tr>
+                {% endif %}
+            </table>
+        </div>
+        <div class="col-md-6">
+            <h3>My Privacy</h3>
+            <br>
+            <h5><strong>Who can read my info</strong></h5>
+            <h5>{{ readers }}</h5>
+            <br>
+            <h5><strong>Who can write my info</strong></h5>
+            <h5>{{ writers }}</h5>
+        </div>
+    </div>
 {% endblock %}
