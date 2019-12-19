@@ -43,22 +43,10 @@ class QueryExecutor:
         if self.session.get_table() == Table.EMPLOYEE and self.session.entity[4] == EmployeeRole.SYSTEM_MANAGER.value:
             return self.__execute_directly(query)
 
+        if query.table in ["reports", "inspector_reports", "manager_reports"]:
+            return self.__manage_reports(query)
+
         if query.table == Table.USER.value:
-            raise DionException("Unauthorized")
-
-        if query.table == "manager_reports" and \
-                (self.session.get_table() != Table.PHYSICIAN or
-                 self.session.entity[5] != PhysicianManagementRole.HOSPITAL_MANAGER.value):
-            raise DionException("Unauthorized")
-
-        if query.table == "inspector_reports" and \
-                (self.session.get_table() != Table.EMPLOYEE or
-                 self.session.entity[4] != EmployeeRole.INSPECTOR.value):
-            raise DionException("Unauthorized")
-
-        if query.table == "reports" and \
-                (self.session.get_table() != Table.EMPLOYEE or
-                 self.session.entity[5] != Section.ADMINISTRATIVE.value):
             raise DionException("Unauthorized")
 
         # Exceptions in access control policy
@@ -158,26 +146,35 @@ class QueryExecutor:
         con, cur = self.create_db_connection()
         cur.execute("insert into reports (username, report, msl, asl, csl) VALUES (%s, %s, %s, %s, %s)",
                     (self.session.user[0], query.text, o_msl, o_asl, o_csl))
+        res = cur.rowcount
+        con.commit()
         cur.close()
         con.close()
+        return res
 
     def migrate_report(self, query: SqlQuery):
         if self.session.get_table() == Table.EMPLOYEE and self.session.entity[5] == Section.ADMINISTRATIVE.value:
             con, cur = self.create_db_connection()
-            condition = query.conditions.and_condition(
-                SimpleCondition('asl', SimpleCondition.Op.LTE, prepare(self.session.get_rsl()))
-            )
+            condition = SimpleCondition('asl', SimpleCondition.Op.LTE, prepare(self.session.get_rsl()))
+            if query.conditions is not None:
+                condition = condition.and_condition(query.conditions)
+            print("select * from reports where %s" % condition)
             cur.execute("select * from reports where %s" % condition)
             result = cur.fetchall()
+            print(result)
+            res = 0
             for record in result:
                 msl = Classification(record[3])
                 csl = Classification(record[5])
-                if msl > Classification.S and  csl > Classification.C:
+                if msl >= Classification.S.value and csl >= Classification.C.value:
                     cur.execute(
                         "insert into inspector_reports (username, report, msl, asl, csl) VALUES (%s, %s, %s, %s, %s)",
                         (record[1], record[2], record[3], record[4], record[5]))
+                    res += 1
+            con.commit()
             cur.close()
             con.close()
+            return res
         elif self.session.get_table() == Table.EMPLOYEE and self.session.entity[4] == EmployeeRole.INSPECTOR.value:
             con, cur = self.create_db_connection()
             condition = query.conditions.and_condition(
@@ -185,16 +182,54 @@ class QueryExecutor:
             )
             cur.execute("select * from inspector_reports where %s" % condition)
             result = cur.fetchall()
+            res = 0
             for record in result:
                 msl = Classification(record[3])
                 csl = Classification(record[5])
-                if msl > Classification.TS and csl > Classification.S:
+                if msl >= Classification.TS.value and csl >= Classification.S.value:
                     cur.execute(
                         "insert into manager_reports (username, report, msl, asl, csl) VALUES (%s, %s, %s, %s, %s)",
                         (record[1], record[2], record[3], record[4], record[5]))
+                    res += 1
+            con.commit()
             cur.close()
             con.close()
+            return res
         raise Exception("Unauthorized")
+
+    def __manage_reports(self, query):
+        if type(query) is InsertQuery:
+            raise DionException("Unauthorized")
+
+        if query.table == "manager_reports" and \
+                (self.session.get_table() != Table.PHYSICIAN or
+                 self.session.entity[5] != PhysicianManagementRole.HOSPITAL_MANAGER.value):
+            raise DionException("Unauthorized")
+
+        if query.table == "inspector_reports" and \
+                (self.session.get_table() != Table.EMPLOYEE or
+                 self.session.entity[4] != EmployeeRole.INSPECTOR.value):
+            raise DionException("Unauthorized")
+
+        if query.table == "reports" and \
+                (self.session.get_table() != Table.EMPLOYEE or
+                 self.session.entity[5] != Section.ADMINISTRATIVE.value):
+            raise DionException("Unauthorized")
+
+        if type(query) is SelectQuery:
+            query.and_condition(SimpleCondition('asl', SimpleCondition.Op.LTE, prepare(self.session.get_rsl())))
+            return self.__execute_read(query)
+
+        elif type(query) is UpdateQuery or type(query) is DeleteQuery:
+            query.and_condition(SimpleCondition('asl', SimpleCondition.Op.GTE, prepare(self.session.get_wsl())))
+            if type(query) is UpdateQuery:
+                if query.table == "inspector_reports":
+                    query.setters += [('msl', 3), ('asl', 3), ('csl', 2)]
+                elif query.table == "manger_reports":
+                    query.setters += [('msl', 4), ('asl', 4), ('csl', 3)]
+            return self.__execute_write(query)
+
+        raise DionException("Could not execute query")
 
     def __execute_directly(self, query: SqlQuery):
         if query.table == Table.USER.value and type(query) is InsertQuery:

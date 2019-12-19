@@ -55,6 +55,8 @@ class SqlQuery:
             text = query[12:]
             if text[0] == text[-1] == "'" or text[0] == text[-1] == '"':
                 return SendReportQuery(text[1:-1])
+        elif query.lower() == 'migrate reports':
+            return MigrateReportQuery(None)
         elif query.lower()[:22] == 'migrate reports where ':
             return MigrateReportQuery(Condition.parse(query[22:]))
         raise SqlException("Invalid query")
@@ -171,7 +173,7 @@ class SendReportQuery(SqlQuery):
 
 
 class MigrateReportQuery(SqlQuery):
-    def __init__(self, conditions: 'Condition'):
+    def __init__(self, conditions):
         super().__init__(None, conditions)
 
 

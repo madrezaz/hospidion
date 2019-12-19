@@ -66,6 +66,9 @@ class Table(Enum):
     PHYSICIAN = "physicians"
     NURSE = "nurses"
     EMPLOYEE = "employees"
+    REPORTS = "reports"
+    INSPECTOR_REPORTS = "inspector_reports"
+    MANGER_REPORTS = "manager_reports"
 
 
 class User:
@@ -113,6 +116,21 @@ class Employee:
     csl = Classification.TS
 
 
+class Report:
+    columns = ['id', 'username', 'report']
+    enums = {}
+
+
+class InspectorReport:
+    columns = ['id', 'username', 'report']
+    enums = {}
+
+
+class ManagerReport:
+    columns = ['id', 'username', 'report']
+    enums = {}
+
+
 class Privacy:
     def __init__(self, readers, writers):
         self.readers = readers
@@ -146,4 +164,5 @@ subject_levels = {Table.PHYSICIAN: (Classification.S, Classification.S, Classifi
 
 
 tables = {Table.USER: User, Table.PHYSICIAN: Physician, Table.PATIENTS: Patient,
-          Table.NURSE: Nurse, Table.EMPLOYEE: Employee}
+          Table.NURSE: Nurse, Table.EMPLOYEE: Employee, Table.REPORTS: Report,
+          Table.INSPECTOR_REPORTS: InspectorReport, Table.MANGER_REPORTS: ManagerReport}
