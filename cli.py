@@ -1,5 +1,5 @@
 import psycopg2
-
+import getpass
 from core.dion import QueryExecutor, SqlException
 from core.models import *
 
@@ -26,7 +26,7 @@ def main():
     session = None
     while session is None:
         username = input("Username: ")
-        password = input("Password: ")
+        password = getpass.getpass(prompt="Password: ")
         session = authenticate(username, password)
         if session is None:
             print("Invalid username or password")
