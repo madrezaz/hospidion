@@ -103,6 +103,5 @@ create table manager_reports (
     csl smallint not null
 );
 
-insert into employees values ('0000000000', 'Mohammadreza', 'Ziraki', '2282400860', 'system_manager', 'hospital',
-                              '2019-12-19', 22, 'M', 10000000, false, 4, 4, 4);
-insert into users values ('root', 'admin', 'employees', '0000000000', 4, 4, 3);
+insert into employees values ('0', 'Admin', 'Admini', '0', 'system_manager', 'hospital', '2019-12-19', 22, 'M', 20, false, 4, 4, 4);
+insert into users values ('root', 'admin', 'employees', '0', 4, 4, 3);
