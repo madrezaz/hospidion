@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% set title = 'Create Patient' %}
+{% from 'base.html' import section_field, gender_field %}
+
+{% block content %}
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Create Patient</h1>
+    </div>
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+          {{ error }}
+        </div>
+    {% endif %}
+
+    <form action="/patients/create" method="post">
+      <div class="form-row">
+        <div class="form-group col-md-4">
+          <label for="id">id</label>
+          <input name="reception_id" class="form-control" id="id" placeholder="id">
+        </div>
+        <div class="form-group col-md-4">
+          <label for="first-name">First Name</label>
+          <input name="first_name" class="form-control" id="first-name" placeholder="First Name">
+        </div>
+          <div class="form-group col-md-4">
+          <label for="last-name">Last Name</label>
+          <input name="last_name" class="form-control" id="last-name" placeholder="Last Name">
+        </div>
+      </div>
+        <div class="form-row">
+        <div class="form-group col-md-4">
+          <label for="national-code">National Code</label>
+          <input name="national_code" class="form-control" id="national-code" placeholder="National Code">
+        </div>
+        <div class="form-group col-md-4">
+          <label for="age">Age</label>
+          <input type="number" name="age" class="form-control" id="age" placeholder="Age">
+        </div>
+        <div class="form-group col-md-4">
+            {{ gender_field('M') }}
+        </div>
+      </div>
+         <div class="form-row">
+            <div class="form-group col-md-4">
+              <label for="sickness_type">Sickness Type</label>
+              <input name="sickness_type" class="form-control" id="sickness_type" placeholder="Sickness Type">
+            </div>
+            <div class="form-group col-md-4">
+              {{ section_field('general') }}
+            </div>
+            <div class="form-group col-md-4">
+              <label for="physician_id">Physician Id</label>
+              <input name="physician_id" class="form-control" id="physician_id" placeholder="Physician Id">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-4">
+              <label for="nurse_id">Nurse Id</label>
+              <input name="nurse_id" class="form-control" id="nurse_id" placeholder="Nurse Id">
+            </div>
+            <div class="form-group col-md-4">
+              <label for="drugs">Drugs</label>
+              <input name="drugs" class="form-control" id="drugs" placeholder="Drugs">
+            </div>
+        </div>
+      <button type="submit" class="btn btn-primary bg-dark">Create</button>
+    </form>
+{% endblock %}

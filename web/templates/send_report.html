@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% set title = 'Send Report' %}
+
+{% block content %}
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Send Report</h1>
+    </div>
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+          {{ error }}
+        </div>
+    {% endif %}
+
+    <form action="/reports/send" method="post">
+        <div class="form-group col-md-12">
+        <label for="report">Report</label>
+        <textarea class="form-control" id="report" name="report" rows="3"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary bg-dark">Send</button>
+    </form>
+{% endblock %}

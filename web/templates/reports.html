@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% if inspector %}
+    {% set active = 6 %}
+{% elif manager %}
+    {% set active = 7 %}
+{% else %}
+    {% set active = 5 %}
+{% endif %}
+{% set title = 'Reports' %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% if inspector %}Inspector {% elif manager %}Manager {% endif %}Reports</h1>
+</div>
+<div class="table-responsive">
+    <table class="table table-striped table-sm">
+      <thead>
+        <tr>
+          <th>id</th>
+          <th>Username</th>
+          <th>Report</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for p in list %}
+        <tr>
+          <td>{{ p[0] }}</td>
+          <td>{{ p[1] }}</td>
+          <td>{{ p[2] }}</td>
+          <td>
+            {% if inspector %}
+                <a href="/reports/inspector/migrate/{{ p[0] }}"><i class="fa fa-paper-plane" aria-hidden="true"></i></a>
+            {% elif not manager %}
+              <a href="/reports/migrate/{{ p[0] }}"><i class="fa fa-paper-plane" aria-hidden="true"></i></a>
+            {% endif %}
+              <a href="/reports{% if inspector %}/inspector{% elif manager %}/manager{% endif %}/edit/{{ p[0] }}"><i class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
+              <a href="/reports{% if inspector %}/inspector{% elif manager %}/manager{% endif %}/delete/{{ p[0] }}"><i class="fa fa-times" aria-hidden="true"></i></a>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+</div>
+{% endblock %}

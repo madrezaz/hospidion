@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% set title = 'Edit Nurse' %}
+{% from 'base.html' import section_field, gender_field, married_field %}
+
+{% block content %}
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Nurse {{ p[0] }}</h1>
+    </div>
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+          {{ error }}
+        </div>
+    {% endif %}
+
+    <form action="/nurses/edit/{{ p[0] }}" method="post">
+      <div class="form-row">
+        <div class="form-group col-md-4">
+          <label for="id">id</label>
+          <input name="personnel_id" class="form-control" id="id" placeholder="id" value="{{ p[0] }}">
+        </div>
+        <div class="form-group col-md-4">
+          <label for="first-name">First Name</label>
+          <input name="first_name" class="form-control" id="first-name" placeholder="First Name" value="{{ p[1] }}">
+        </div>
+          <div class="form-group col-md-4">
+          <label for="last-name">Last Name</label>
+          <input name="last_name" class="form-control" id="last-name" placeholder="Last Name" value="{{ p[2] }}">
+        </div>
+      </div>
+        <div class="form-row">
+        <div class="form-group col-md-4">
+          <label for="national-code">National Code</label>
+          <input name="national_code" class="form-control" id="national-code" placeholder="National Code" value="{{ p[3] }}">
+        </div>
+            <div class="form-group col-md-4">
+            {{ section_field(p[4]) }}
+        </div>
+        <div class="form-group col-md-4">
+          <label for="employment_date">Employment Date</label>
+          <input type="date" name="employment_date" class="form-control" id="employment_date" placeholder="Employment Date" value="{{ p[5] }}">
+        </div>
+      </div>
+      <div class="form-row">
+          <div class="form-group col-md-4">
+          <label for="age">Age</label>
+          <input type="number" name="age" class="form-control" id="age" placeholder="Age" value="{{ p[6] }}">
+        </div>
+          <div class="form-group col-md-4">
+          {{ gender_field(p[7]) }}
+        </div>
+        <div class="form-group col-md-4">
+          <label for="salary">Salary</label>
+          <input type="number" name="salary" class="form-control" id="salary" placeholder="Salary" value="{{ p[8] }}">
+        </div>
+      </div>
+        <div class="form-row">
+          <div class="form-group col-md-4">
+          {{ married_field(p[9]) }}
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary bg-dark">Update</button>
+    </form>
+{% endblock %}

@@ -36,18 +36,33 @@
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link{% if active == 2 %} active{% endif %}" href="{{ "#" if active == 2 else "/" }}">
+                <a class="nav-link{% if active == 2 %} active{% endif %}" href="{{ "#" if active == 2 else "/patients" }}">
                   Patients
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link{% if active == 3 %} active{% endif %}" href="{{ "#" if active == 3 else "/" }}">
+                <a class="nav-link{% if active == 3 %} active{% endif %}" href="{{ "#" if active == 3 else "/nurses" }}">
                   Nurses
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link{% if active == 4 %} active{% endif %}" href="{{ "#" if active == 4 else "/" }}">
+                <a class="nav-link{% if active == 4 %} active{% endif %}" href="{{ "#" if active == 4 else "/employees" }}">
                   Employees
+                </a>
+              </li>
+                <li class="nav-item">
+                <a class="nav-link{% if active == 5 %} active{% endif %}" href="{{ "#" if active == 5 else "/reports" }}">
+                  Reports
+                </a>
+              </li>
+                <li class="nav-item">
+                <a class="nav-link{% if active == 6 %} active{% endif %}" href="{{ "#" if active == 6 else "/reports/inspector" }}">
+                  Inspector Reports
+                </a>
+              </li>
+                <li class="nav-item">
+                <a class="nav-link{% if active == 7 %} active{% endif %}" href="{{ "#" if active == 7 else "/reports/manager" }}">
+                  Manager Reports
                 </a>
               </li>
             </ul>
@@ -61,4 +76,35 @@
     </div>
     <script src="{{ url_for('static', filename='js/jquery-3.4.1.slim.min.js') }}" crossorigin="anonymous"></script>
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}" crossorigin="anonymous"></script>
+  </body>
 </html>
+
+{% macro section_field(value) %}
+    <label for="section">Section</label>
+    <select name="section" id="section" class="form-control">
+        <option value="general" {% if value == 'general' %}selected{% endif %}>General</option>
+        <option value="speciality" {% if value == 'speciality' %}selected{% endif %}>Speciality</option>
+        <option value="super_speciality {% if value == 'super_speciality' %}selected{% endif %}">Super Speciality</option>
+        <option value="emergency" {% if value == 'emergency' %}selected{% endif %}>Emergency</option>
+        <option value="financial" {% if value == 'financial' %}selected{% endif %}>Financial</option>
+        <option value="administrative" {% if value == 'administrative' %}selected{% endif %}>Administrative</option>
+        <option value="medical" {% if value == 'medical' %}selected{% endif %}>Medical</option>
+        <option value="hospital" {% if value == 'hospital' %}selected{% endif %}>Hospital</option>
+    </select>
+{% endmacro %}
+
+{% macro gender_field(value) %}
+      <label for="gender">Gender</label>
+      <select name="gender" id="gender" class="form-control">
+        <option value="M" {% if value == 'M' %}selected{% endif %}>Male</option>
+        <option value="F" {% if value == 'F' %}selected{% endif %}>Female</option>
+      </select>
+{% endmacro %}
+
+{% macro married_field(value) %}
+  <label for="marital_status">Marital Status</label>
+  <select name="married" id="marital_status" class="form-control">
+    <option value="true" {% if value %}selected="selected"{% endif %}>Married</option>
+    <option value="false" {% if not value %}selected="selected"{% endif %}>Single</option>
+  </select>
+{% endmacro %}

@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
-{% set title = 'Create Physician' %}
+{% set title = 'Create Nurse' %}
 {% from 'base.html' import section_field, gender_field, married_field %}
 
 {% block content %}
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Create Physician</h1>
+        <h1 class="h2">Create Nurse</h1>
     </div>
     {% if error %}
         <div class="alert alert-danger" role="alert">
@@ -12,7 +12,7 @@
         </div>
     {% endif %}
 
-    <form action="/physicians/create" method="post">
+    <form action="/nurses/create" method="post">
       <div class="form-row">
         <div class="form-group col-md-4">
           <label for="id">id</label>
@@ -32,45 +32,30 @@
           <label for="national-code">National Code</label>
           <input name="national_code" class="form-control" id="national-code" placeholder="National Code">
         </div>
-        <div class="form-group col-md-4">
-          <label for="proficiency">Proficiency</label>
-          <input name="proficiency" class="form-control" id="proficiency" placeholder="Proficiency">
-        </div>
-          <div class="form-group col-md-4">
-          <label for="management_role">Management Role</label>
-          <select name="management_role" id="management_role" class="form-control">
-            <option value="nothing">Nothing</option>
-            <option value="section_manager">Section Manager</option>
-            <option value="hospital_manager">Hospital Manager</option>
-            <option value="medical_vp">Medical VP</option>
-            <option value="financial_vp">Financial VP</option>
-            <option value="administrative_vp">Administrative VP</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group col-md-4">
-          {{ section_field('general') }}
+            <div class="form-group col-md-4">
+            {{ section_field('general') }}
         </div>
         <div class="form-group col-md-4">
           <label for="employment_date">Employment Date</label>
           <input type="date" name="employment_date" class="form-control" id="employment_date" placeholder="Employment Date">
         </div>
+      </div>
+      <div class="form-row">
           <div class="form-group col-md-4">
           <label for="age">Age</label>
           <input type="number" name="age" class="form-control" id="age" placeholder="Age">
         </div>
-      </div>
-        <div class="form-row">
-        <div class="form-group col-md-4">
-            {{ gender_field('M') }}
+          <div class="form-group col-md-4">
+          {{ gender_field('M') }}
         </div>
         <div class="form-group col-md-4">
           <label for="salary">Salary</label>
           <input type="number" name="salary" class="form-control" id="salary" placeholder="Salary">
         </div>
+      </div>
+        <div class="form-row">
           <div class="form-group col-md-4">
-          {{ married_field(false) }}
+          {{ married_field(False) }}
         </div>
       </div>
       <button type="submit" class="btn btn-primary bg-dark">Create</button>

@@ -171,6 +171,7 @@ class QueryExecutor:
         return res
 
     def migrate_report(self, query: SqlQuery):
+        print(self.session.get_table(), self.session.entity[4])
         if self.session.get_table() == Table.EMPLOYEE and self.session.entity[5] == Section.ADMINISTRATIVE.value:
             con, cur = self.create_db_connection()
             condition = SimpleCondition('asl', SimpleCondition.Op.LTE, prepare(self.session.get_rsl()))
@@ -179,7 +180,6 @@ class QueryExecutor:
             print("select * from reports where %s" % condition)
             cur.execute("select * from reports where %s" % condition)
             result = cur.fetchall()
-            print(result)
             res = 0
             for record in result:
                 msl = Classification(record[3])
@@ -288,6 +288,8 @@ class QueryExecutor:
         else:
             if type(query) == InsertQuery:
                 model = tables[Table(query.table)]
+                if model in [Report, InspectorReport, ManagerReport]:
+                    raise DionException("Unauthorized")
                 query.values += (prepare(model.msl), prepare(model.asl), prepare(model.csl))
             return self.__execute_write(query)
 

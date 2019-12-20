@@ -19,7 +19,7 @@ class Session:
         return Table(self.user[2])
 
     def get_section(self) -> 'Section':
-                return Section(self.entity[tables[self.get_table()].section_index])
+        return Section(self.entity[tables[self.get_table()].section_index])
 
 
 class Classification(IntEnum):
@@ -147,10 +147,11 @@ section_dominance = {Section.GENERAL: [Section.GENERAL],
                      Section.SPECIALITY: [Section.SPECIALITY],
                      Section.SUPER_SPECIALITY: [Section.SUPER_SPECIALITY],
                      Section.EMERGENCY: [Section.EMERGENCY],
-                     Section.FINANCIAL: [Section.FINANCIAL, Section.GENERAL, Section.SPECIALITY,
-                                         Section.SUPER_SPECIALITY, Section.EMERGENCY],
+                     Section.FINANCIAL: [Section.FINANCIAL, Section.GENERAL, Section.SPECIALITY, Section.HOSPITAL,
+                                         Section.SUPER_SPECIALITY, Section.EMERGENCY, Section.ADMINISTRATIVE],
                      Section.ADMINISTRATIVE: [Section.ADMINISTRATIVE, Section.GENERAL, Section.SPECIALITY,
-                                              Section.SUPER_SPECIALITY, Section.EMERGENCY],
+                                              Section.SUPER_SPECIALITY, Section.EMERGENCY, Section.FINANCIAL,
+                                              Section.HOSPITAL],
                      Section.MEDICAL: [Section.MEDICAL, Section.GENERAL, Section.SPECIALITY,
                                        Section.SUPER_SPECIALITY, Section.EMERGENCY],
                      Section.HOSPITAL: [Section.HOSPITAL, Section.FINANCIAL, Section.ADMINISTRATIVE, Section.GENERAL,
@@ -165,8 +166,8 @@ section_dominance_reverse = {Section.GENERAL: [Section.GENERAL, Section.FINANCIA
                                                         Section.ADMINISTRATIVE, Section.MEDICAL, Section.HOSPITAL],
                              Section.EMERGENCY: [Section.EMERGENCY, Section.FINANCIAL, Section.ADMINISTRATIVE,
                                                  Section.MEDICAL, Section.HOSPITAL],
-                             Section.FINANCIAL: [Section.FINANCIAL, Section.HOSPITAL],
-                             Section.ADMINISTRATIVE: [Section.ADMINISTRATIVE, Section.HOSPITAL],
+                             Section.FINANCIAL: [Section.FINANCIAL, Section.ADMINISTRATIVE, Section.HOSPITAL],
+                             Section.ADMINISTRATIVE: [Section.ADMINISTRATIVE, Section.FINANCIAL, Section.HOSPITAL],
                              Section.MEDICAL: [Section.MEDICAL, Section.HOSPITAL],
                              Section.HOSPITAL: [Section.HOSPITAL]}
 

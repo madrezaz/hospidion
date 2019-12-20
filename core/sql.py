@@ -124,15 +124,19 @@ class UpdateQuery(SqlQuery):
             conditions = Condition.parse(query[where_span[1]:])
             query = query[:where_span[0]]
 
-        equal_match = re.search(" = ", query, flags=re.IGNORECASE)
-        if not equal_match:
-            raise SqlException("Invalid query")
-        equal_span = equal_match.span()
-        column = query[:equal_span[0]]
-        value = query[equal_span[1]:]
+        self.setters = []
+        values = query.split(",")
+        for value in values:
+            q = " ".join(value.split())
+            equal_match = re.search("=", q, flags=re.IGNORECASE)
+            if not equal_match:
+                raise SqlException("Invalid query")
+            equal_span = equal_match.span()
+            column = q[:equal_span[0]].strip()
+            value = q[equal_span[1]:].strip()
+            self.setters += [(column, value)]
 
         super().__init__(table, conditions)
-        self.setters = [(column, value)]
 
     def __str__(self):
         s = "update %s set %s" % (self.table, ", ".join(["%s = %s" % (col, val) for col, val in self.setters]))

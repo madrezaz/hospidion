@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
-{% set active = 1 %}
-{% set title = 'Physicians' %}
+{% set active = 4 %}
+{% set title = 'Employees' %}
 
 {% block content %}
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Physicians</h1>
+    <h1 class="h2">Employees</h1>
     <div class="btn-toolbar mb-2 mb-md-0">
-      <a href="/physicians/create"><i class="fa fa-plus" aria-hidden="true"></i></a>
+      <a href="/employees/create"><i class="fa fa-plus" aria-hidden="true"></i></a>
     </div>
 </div>
 <div class="table-responsive">
@@ -17,8 +17,7 @@
           <th>First Name</th>
           <th>Last Name</th>
           <th>National Code</th>
-          <th>Proficiency</th>
-          <th>Management Role</th>
+          <th>Role</th>
           <th>Section</th>
           <th>Employment Date</th>
           <th>Age</th>
@@ -41,11 +40,10 @@
           <td>{{ p[7] }}</td>
           <td>{{ p[8] }}</td>
           <td>{{ p[9] }}</td>
-          <td>{{ p[10] }}</td>
-          <td>{{ "yes" if p[11] else "no" }}</td>
+          <td>{{ "yes" if p[10] else "no" }}</td>
           <td>
-              <a href="/physicians/edit/{{ p[0] }}"><i class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
-              <a href="/physicians/delete/{{ p[0] }}"><i class="fa fa-times" aria-hidden="true"></i></a>
+              <a href="/employees/edit/{{ p[0] }}"><i class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
+              <a href="/employees/delete/{{ p[0] }}"><i class="fa fa-times" aria-hidden="true"></i></a>
           </td>
         </tr>
       {% endfor %}

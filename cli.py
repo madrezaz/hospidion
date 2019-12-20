@@ -26,9 +26,9 @@ def main():
                 print("\n".join(str(r) for r in result))
             elif type(result) is Privacy:
                 print("Readers:")
-                print(result.readers)
+                print(", ".join([r[0] for r in result.readers]))
                 print("Writers:")
-                print(result.readers)
+                print(", ".join([r[0] for r in result.writers]))
             else:
                 print("%d rows affected" % result)
         except DionException as ex:
