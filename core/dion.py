@@ -1,12 +1,11 @@
-import psycopg2
-import config
 from core.models import *
 from core.sql import *
 
 
-class QueryExecutor:
-    def __init__(self, session: Session):
+class DionExecutor:
+    def __init__(self, session: Session, executor: QueryExecutor):
         self.session = session
+        self.executor = executor
 
         sec0 = section_dominance[session.get_section()][0]
         sec_cond = SimpleCondition('section', SimpleCondition.Op.EQUAL, prepare(sec0))
@@ -131,87 +130,68 @@ class QueryExecutor:
         o_msl = self.session.entity[-3]
         o_asl = self.session.entity[-2]
         o_csl = self.session.entity[-1]
-        connection, cursor = QueryExecutor.create_db_connection()
 
         sections = section_dominance_reverse[self.session.get_section()]
         cond = " or ".join(["t.section = %s" % prepare(sec) for sec in sections])
 
         for table in ["physicians", "nurses", "employees"]:
-            cursor.execute("select username from users as u inner join " + table + " as t on u.id = t.personnel_id " +
-                           "where u.rsl >= %s and u.asl <= %s and (" + cond + ")", (o_asl, o_msl))
-            readers += cursor.fetchall()
+            q = JoinSelectQuery('username', 'users',
+                                Condition.parse("u.rsl >= %s and u.asl <= %s and (%s)" % (o_asl, o_msl, cond)),
+                                "as u inner join %s as t on u.id = t.personnel_id" % table)
+            readers += self.executor.execute_read(q)
 
-            cursor.execute("select username from users as u inner join " + table + " as t on u.id = t.personnel_id " +
-                           "where u.wsl <= %s and u.asl >= %s and (" + cond + ")", (o_asl, o_csl))
-            writers += cursor.fetchall()
+            q.conditions = Condition.parse("u.wsl <= %s and u.asl >= %s and (%s)" % (o_asl, o_csl, cond))
+            writers += self.executor.execute_read(q)
 
-        cursor.execute("select username from users as u inner join patients as t on u.id = t.reception_id " +
-                       "where u.rsl >= %s and u.asl <= %s and (" + cond + ")", (o_asl, o_msl))
-        readers += cursor.fetchall()
+        q = JoinSelectQuery('username', 'users',
+                            Condition.parse("u.rsl >= %s and u.asl <= %s and (%s)" % (o_asl, o_msl, cond)),
+                            "as u inner join patients as t on u.id = t.reception_id")
+        readers += self.executor.execute_read(q)
 
-        cursor.execute("select username from users as u inner join patients as t on u.id = t.reception_id " +
-                       "where u.wsl <= %s and u.asl >= %s and (" + cond + ")", (o_asl, o_csl))
-        writers += cursor.fetchall()
+        q.conditions = Condition.parse("u.wsl <= %s and u.asl >= %s and (%s)" % (o_asl, o_csl, cond))
+        writers += self.executor.execute_read(q)
 
-        cursor.close()
-        connection.close()
         return Privacy(readers, writers)
 
     def send_report(self, query: SqlQuery):
         o_msl = self.session.entity[-3]
         o_asl = self.session.entity[-2]
         o_csl = self.session.entity[-1]
-        con, cur = self.create_db_connection()
-        cur.execute("insert into reports (username, report, msl, asl, csl) VALUES (%s, %s, %s, %s, %s)",
-                    (self.session.user[0], query.text, o_msl, o_asl, o_csl))
-        res = cur.rowcount
-        con.commit()
-        cur.close()
-        con.close()
-        return res
+
+        q = SqlQuery.parse("insert into reports (username, report, msl, asl, csl) VALUES ('%s', '%s',%s, %s, %s)"
+                           % (self.session.user[0], query.text, o_msl, o_asl, o_csl))
+        return self.executor.execute_write(q)
 
     def migrate_report(self, query: SqlQuery):
-        print(self.session.get_table(), self.session.entity[4])
         if self.session.get_table() == Table.EMPLOYEE and self.session.entity[5] == Section.ADMINISTRATIVE.value:
-            con, cur = self.create_db_connection()
             condition = SimpleCondition('asl', SimpleCondition.Op.LTE, prepare(self.session.get_rsl()))
             if query.conditions is not None:
                 condition = condition.and_condition(query.conditions)
-            print("select * from reports where %s" % condition)
-            cur.execute("select * from reports where %s" % condition)
-            result = cur.fetchall()
+            result = self.executor.execute_read(SqlQuery.parse("select * from reports where %s" % condition))
             res = 0
             for record in result:
                 msl = Classification(record[3])
                 csl = Classification(record[5])
                 if msl >= Classification.S.value and csl >= Classification.C.value:
-                    cur.execute(
-                        "insert into inspector_reports (username, report, msl, asl, csl) VALUES (%s, %s, %s, %s, %s)",
-                        (record[1], record[2], record[3], record[4], record[5]))
+                    self.executor.execute_write(SqlQuery.parse(
+                        "insert into inspector_reports (username, report, msl, asl, csl) VALUES ('%s', '%s',"
+                        "%s, %s, %s)" % (record[1], record[2], record[3], record[4], record[5])))
                     res += 1
-            con.commit()
-            cur.close()
-            con.close()
             return res
         elif self.session.get_table() == Table.EMPLOYEE and self.session.entity[4] == EmployeeRole.INSPECTOR.value:
-            con, cur = self.create_db_connection()
             condition = query.conditions.and_condition(
                 SimpleCondition('asl', SimpleCondition.Op.LTE, prepare(self.session.get_rsl()))
             )
-            cur.execute("select * from inspector_reports where %s" % condition)
-            result = cur.fetchall()
+            result = self.executor.execute_read("select * from inspector_reports where %s" % condition)
             res = 0
             for record in result:
                 msl = Classification(record[3])
                 csl = Classification(record[5])
                 if msl >= Classification.TS.value and csl >= Classification.S.value:
-                    cur.execute(
-                        "insert into manager_reports (username, report, msl, asl, csl) VALUES (%s, %s, %s, %s, %s)",
-                        (record[1], record[2], record[3], record[4], record[5]))
+                    self.executor.execute_write(SqlQuery.parse(
+                        "insert into manager_reports (username, report, msl, asl, csl) VALUES ('%s', '%s', %s, %s, %s)"
+                        % (record[1], record[2], record[3], record[4], record[5])))
                     res += 1
-            con.commit()
-            cur.close()
-            con.close()
             return res
         raise Exception("Unauthorized")
 
@@ -256,12 +236,9 @@ class QueryExecutor:
             except ValueError:
                 raise DionException("Invalid type %s" % query.values[2])
 
-            q = "select * from %s where %s = " % (table.value, tables[table].columns[0])
-            con, cur = self.create_db_connection()
-            cur.execute(q + "%s", (query.values[3][1:-1],))
-            entity = cur.fetchone()
-            cur.close()
-            con.close()
+            q = SqlQuery.parse("select * from %s where %s = '%s'" %
+                               (table.value, tables[table].columns[0], query.values[3][1:-1]))
+            entity = self.executor.execute_single_read(q)
 
             if entity is None:
                 raise DionException("Invalid id %s" % query.values[3])
@@ -322,36 +299,8 @@ class QueryExecutor:
                     except ValueError:
                         raise DionException("Invalid value %s" % val)
 
-    @staticmethod
-    def __execute_read(query: SqlQuery):
-        print(query)
-        connection, cursor = QueryExecutor.create_db_connection()
+    def __execute_read(self, query: SqlQuery):
+        return self.executor.execute_read(query)
 
-        cursor.execute(str(query))
-        result = cursor.fetchall()
-
-        cursor.close()
-        connection.close()
-
-        return result
-
-    @staticmethod
-    def __execute_write(query: SqlQuery):
-        print(query)
-        connection, cursor = QueryExecutor.create_db_connection()
-
-        cursor.execute(str(query))
-        result = cursor.rowcount
-
-        connection.commit()
-        cursor.close()
-        connection.close()
-
-        return result
-
-    @staticmethod
-    def create_db_connection():
-        connection = psycopg2.connect(dbname=config.db_name, user=config.db_user, password=config.db_password,
-                                      host=config.db_host, port=config.db_port)
-        cursor = connection.cursor()
-        return connection, cursor
+    def __execute_write(self, query: SqlQuery):
+        return self.executor.execute_write(query)

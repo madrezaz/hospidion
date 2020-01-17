@@ -4,13 +4,29 @@ import psycopg2
 from flask import Flask, request, session, render_template, redirect, url_for, abort
 
 from core.auth import create_session
-from core.dion import QueryExecutor
+from core.dion import DionExecutor
 import config
 from core.models import *
-from core.sql import SqlException
+from core.sql import SqlException, DefaultQueryExecutor
+from outsourcing.indexing import IndexingQueryExecutor
+from outsourcing.partitioning import PartitioningQueryExecutor
 
 app = Flask(__name__)
 app.secret_key = config.secret
+
+
+def create_db_executor():
+    if config.outsourced == 0:
+        executor = DefaultQueryExecutor
+    elif config.outsourced == 1:
+        executor = IndexingQueryExecutor
+    else:
+        executor = PartitioningQueryExecutor
+    return executor(config.db_name, config.db_user, config.db_password, config.db_host, config.db_port)
+
+
+def create_executor(user_session):
+    return DionExecutor(user_session, create_db_executor())
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -19,7 +35,8 @@ def login():
         return redirect(url_for('index'))
     if request.method == 'POST':
         username = request.form['username']
-        if create_session(username, request.form['password']) is not None:
+        s = create_session(create_db_executor(), username, request.form['password'])
+        if s is not None:
             session['username'] = username
             return redirect(url_for('index'))
         return render_template('login.html', failed=True)
@@ -38,7 +55,7 @@ def login_required(func):
     def wrapper(*args, **kwargs):
         if 'username' not in session:
             return redirect(url_for('login'))
-        kwargs['user_session'] = create_session(session['username'])
+        kwargs['user_session'] = create_session(create_db_executor(), session['username'])
         return func(*args, **kwargs)
 
     return wrapper
@@ -47,7 +64,7 @@ def login_required(func):
 @app.route('/')
 @login_required
 def index(user_session):
-    executor = QueryExecutor(user_session)
+    executor = create_executor(user_session)
     privacy = executor.execute("my privacy")
     readers = ", ".join([r[0] for r in privacy.readers])
     writers = ", ".join([r[0] for r in privacy.writers])
@@ -57,7 +74,7 @@ def index(user_session):
 @app.route('/physicians')
 @login_required
 def physicians(user_session):
-    executor = QueryExecutor(user_session)
+    executor = create_executor(user_session)
     res = executor.execute("select * from physicians")
     return render_template('physicians.html', list=res)
 
@@ -69,7 +86,7 @@ def create_physician(user_session):
         for col in Physician.columns:
             if col not in request.form or request.form[col] == '':
                 return render_template('create_physician.html', error="%s must be non-empty" % col)
-        executor = QueryExecutor(user_session)
+        executor = create_executor(user_session)
         try:
             res = executor.execute("insert into physicians values " +
                                    "('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')" %
@@ -90,7 +107,7 @@ def create_physician(user_session):
 @app.route('/physicians/edit/<physician_id>', methods=['GET', 'POST'])
 @login_required
 def edit_physician(physician_id, user_session):
-    executor = QueryExecutor(user_session)
+    executor = create_executor(user_session)
     result = executor.execute("select * from physicians where personnel_id = '%s'" % physician_id)
     if len(result) != 1:
         abort(404)
@@ -116,7 +133,7 @@ def edit_physician(physician_id, user_session):
 @app.route('/physicians/delete/<physician_id>')
 @login_required
 def delete_physician(physician_id, user_session):
-    executor = QueryExecutor(user_session)
+    executor = create_executor(user_session)
     try:
         executor.execute("delete from physicians where personnel_id = '%s'" % physician_id)
     except (DionException, SqlException, psycopg2._psycopg.Error) as ex:
@@ -127,7 +144,7 @@ def delete_physician(physician_id, user_session):
 @app.route('/patients')
 @login_required
 def patients(user_session):
-    executor = QueryExecutor(user_session)
+    executor = create_executor(user_session)
     res = executor.execute("select * from patients")
     return render_template('patients.html', list=res)
 
@@ -139,7 +156,7 @@ def create_patient(user_session):
         for col in Patient.columns:
             if col not in request.form or request.form[col] == '':
                 return render_template('create_patient.html', error="%s must be non-empty" % col)
-        executor = QueryExecutor(user_session)
+        executor = create_executor(user_session)
         try:
             res = executor.execute("insert into patients values " +
                                    "('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')" %
@@ -159,7 +176,7 @@ def create_patient(user_session):
 @app.route('/patients/edit/<patient_id>', methods=['GET', 'POST'])
 @login_required
 def edit_patient(patient_id, user_session):
-    executor = QueryExecutor(user_session)
+    executor = create_executor(user_session)
     result = executor.execute("select * from patients where reception_id = '%s'" % patient_id)
     if len(result) != 1:
         abort(404)
@@ -185,7 +202,7 @@ def edit_patient(patient_id, user_session):
 @app.route('/patients/delete/<patient_id>')
 @login_required
 def delete_patient(patient_id, user_session):
-    executor = QueryExecutor(user_session)
+    executor = create_executor(user_session)
     try:
         executor.execute("delete from patients where reception_id = '%s'" % patient_id)
     except (DionException, SqlException, psycopg2._psycopg.Error) as ex:
@@ -196,7 +213,7 @@ def delete_patient(patient_id, user_session):
 @app.route('/nurses')
 @login_required
 def nurses(user_session):
-    executor = QueryExecutor(user_session)
+    executor = create_executor(user_session)
     res = executor.execute("select * from nurses")
     return render_template('nurses.html', list=res)
 
@@ -208,7 +225,7 @@ def create_nurse(user_session):
         for col in Nurse.columns:
             if col not in request.form or request.form[col] == '':
                 return render_template('create_nurse.html', error="%s must be non-empty" % col)
-        executor = QueryExecutor(user_session)
+        executor = create_executor(user_session)
         try:
             res = executor.execute("insert into nurses values " +
                                    "('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')" %
@@ -228,7 +245,7 @@ def create_nurse(user_session):
 @app.route('/nurses/edit/<nurse_id>', methods=['GET', 'POST'])
 @login_required
 def edit_nurse(nurse_id, user_session):
-    executor = QueryExecutor(user_session)
+    executor = create_executor(user_session)
     result = executor.execute("select * from nurses where personnel_id = '%s'" % nurse_id)
     if len(result) != 1:
         abort(404)
@@ -254,7 +271,7 @@ def edit_nurse(nurse_id, user_session):
 @app.route('/nurses/delete/<nurse_id>')
 @login_required
 def delete_nurse(nurse_id, user_session):
-    executor = QueryExecutor(user_session)
+    executor = create_executor(user_session)
     try:
         executor.execute("delete from nurses where personnel_id = '%s'" % nurse_id)
     except (DionException, SqlException, psycopg2._psycopg.Error) as ex:
@@ -265,7 +282,7 @@ def delete_nurse(nurse_id, user_session):
 @app.route('/employees')
 @login_required
 def employees(user_session):
-    executor = QueryExecutor(user_session)
+    executor = create_executor(user_session)
     res = executor.execute("select * from employees")
     return render_template('employees.html', list=res)
 
@@ -277,7 +294,7 @@ def create_employee(user_session):
         for col in Employee.columns:
             if col not in request.form or request.form[col] == '':
                 return render_template('create_employee.html', error="%s must be non-empty" % col)
-        executor = QueryExecutor(user_session)
+        executor = create_executor(user_session)
         try:
             res = executor.execute("insert into employees values " +
                                    "('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')" %
@@ -297,7 +314,7 @@ def create_employee(user_session):
 @app.route('/employees/edit/<employee_id>', methods=['GET', 'POST'])
 @login_required
 def edit_employee(employee_id, user_session):
-    executor = QueryExecutor(user_session)
+    executor = create_executor(user_session)
     result = executor.execute("select * from employees where personnel_id = '%s'" % employee_id)
     if len(result) != 1:
         abort(404)
@@ -323,7 +340,7 @@ def edit_employee(employee_id, user_session):
 @app.route('/employees/delete/<employee_id>')
 @login_required
 def delete_employee(employee_id, user_session):
-    executor = QueryExecutor(user_session)
+    executor = create_executor(user_session)
     try:
         executor.execute("delete from employees where personnel_id = '%s'" % employee_id)
     except (DionException, SqlException, psycopg2._psycopg.Error) as ex:
@@ -334,7 +351,7 @@ def delete_employee(employee_id, user_session):
 @app.route('/reports')
 @login_required
 def reports(user_session):
-    executor = QueryExecutor(user_session)
+    executor = create_executor(user_session)
     try:
         res = executor.execute("select * from reports")
         return render_template('reports.html', list=res)
@@ -367,13 +384,13 @@ def __edit_report(executor, table, report_id):
 @app.route('/reports/edit/<report_id>', methods=['GET', 'POST'])
 @login_required
 def edit_reports(report_id, user_session):
-    return __edit_report(QueryExecutor(user_session), "reports", report_id)
+    return __edit_report(create_executor(user_session), "reports", report_id)
 
 
 @app.route('/reports/delete/<report_id>')
 @login_required
 def delete_reports(report_id, user_session):
-    executor = QueryExecutor(user_session)
+    executor = create_executor(user_session)
     try:
         executor.execute("delete from reports where id = %s" % report_id)
     except (DionException, SqlException, psycopg2._psycopg.Error) as ex:
@@ -384,7 +401,7 @@ def delete_reports(report_id, user_session):
 @app.route('/reports/inspector')
 @login_required
 def inspector_reports(user_session):
-    executor = QueryExecutor(user_session)
+    executor = create_executor(user_session)
     try:
         res = executor.execute("select * from inspector_reports")
         return render_template('reports.html', list=res, inspector=True)
@@ -395,13 +412,13 @@ def inspector_reports(user_session):
 @app.route('/reports/inspector/edit/<report_id>', methods=['GET', 'POST'])
 @login_required
 def edit_inspector_reports(report_id, user_session):
-    return __edit_report(QueryExecutor(user_session), "inspector_reports", report_id)
+    return __edit_report(create_executor(user_session), "inspector_reports", report_id)
 
 
 @app.route('/reports/inspector/delete/<report_id>')
 @login_required
 def delete_inspector_reports(report_id, user_session):
-    executor = QueryExecutor(user_session)
+    executor = create_executor(user_session)
     try:
         executor.execute("delete from inspector_reports where id = %s" % report_id)
     except (DionException, SqlException, psycopg2._psycopg.Error) as ex:
@@ -412,7 +429,7 @@ def delete_inspector_reports(report_id, user_session):
 @app.route('/reports/manager')
 @login_required
 def manager_reports(user_session):
-    executor = QueryExecutor(user_session)
+    executor = create_executor(user_session)
     try:
         res = executor.execute("select * from manager_reports")
         return render_template('reports.html', list=res, manager=True)
@@ -423,13 +440,13 @@ def manager_reports(user_session):
 @app.route('/reports/inspector/edit/<report_id>', methods=['GET', 'POST'])
 @login_required
 def edit_manager_reports(report_id, user_session):
-    return __edit_report(QueryExecutor(user_session), "manager_reports", report_id)
+    return __edit_report(create_executor(user_session), "manager_reports", report_id)
 
 
 @app.route('/reports/inspector/delete/<report_id>')
 @login_required
 def delete_manager_reports(report_id, user_session):
-    executor = QueryExecutor(user_session)
+    executor = create_executor(user_session)
     try:
         executor.execute("delete from manager_reports where id = %s" % report_id)
     except (DionException, SqlException, psycopg2._psycopg.Error) as ex:
@@ -443,7 +460,7 @@ def send_report(user_session):
     if request.method == 'POST':
         if 'report' not in request.form or request.form['report'] == '':
             return render_template('send_report.html', error="report must be non-empty")
-        executor = QueryExecutor(user_session)
+        executor = create_executor(user_session)
         res = executor.execute("send report '%s'" % request.form['report'])
         if res == 0:
             return render_template('send_report.html', error="Failed")
@@ -455,7 +472,7 @@ def send_report(user_session):
 @app.route('/reports/migrate/<report_id>')
 @login_required
 def migrate_report(report_id, user_session):
-    executor = QueryExecutor(user_session)
+    executor = create_executor(user_session)
     try:
         res = executor.execute("migrate reports where id = %s" % report_id)
         if res == 0:
@@ -469,7 +486,7 @@ def migrate_report(report_id, user_session):
 @app.route('/reports/inspector/migrate/<report_id>')
 @login_required
 def migrate_inspector_report(report_id, user_session):
-    executor = QueryExecutor(user_session)
+    executor = create_executor(user_session)
     try:
         res = executor.execute("migrate reports where id = %s" % report_id)
         if res == 0:

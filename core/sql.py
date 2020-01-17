@@ -2,6 +2,8 @@ import numbers
 from enum import Enum, IntEnum
 import re
 
+import psycopg2
+
 
 def prepare(value):
     if issubclass(type(value), IntEnum):
@@ -17,6 +19,60 @@ class SqlException(Exception):
     def __init__(self, message):
         super().__init__(message)
         self.message = message
+
+
+class QueryExecutor:
+    def execute_read(self, query: 'SqlQuery'):
+        raise NotImplementedError()
+
+    def execute_single_read(self, query: 'SqlQuery'):
+        raise NotImplementedError()
+
+    def execute_write(self, query: 'SqlQuery'):
+        raise NotImplementedError()
+
+
+class DefaultQueryExecutor:
+    def __init__(self, db_name, db_user, db_password, db_host, db_port):
+        self.db_name = db_name
+        self.db_user = db_user
+        self.db_password = db_password
+        self.db_host = db_host
+        self.db_port = db_port
+
+    def execute_read(self, query: 'SelectQuery'):
+        print("Default:", str(query))
+        con, cur = self.__get_db_connection()
+        cur.execute(str(query))
+        result = cur.fetchall()
+        cur.close()
+        con.close()
+        return result
+
+    def execute_single_read(self, query: 'SelectQuery'):
+        print("Default:", str(query))
+        con, cur = self.__get_db_connection()
+        cur.execute(str(query))
+        result = cur.fetchone()
+        cur.close()
+        con.close()
+        return result
+
+    def execute_write(self, query: 'SqlQuery'):
+        print("Default:", str(query))
+        con, cur = self.__get_db_connection()
+        cur.execute(str(query))
+        result = cur.rowcount
+        con.commit()
+        cur.close()
+        con.close()
+        return result
+
+    def __get_db_connection(self):
+        con = psycopg2.connect(dbname=self.db_name, user=self.db_user, password=self.db_password,
+                               host=self.db_host, port=self.db_port)
+        cur = con.cursor()
+        return con, cur
 
 
 class SqlQuery:
@@ -41,9 +97,9 @@ class SqlQuery:
         query = " ".join(query.split())
         operation = query[:7].lower()
         if operation == 'select ':
-            return SelectQuery(query)
+            return SelectQuery.parse(query)
         elif operation == 'insert ' and query[7:12] == 'into ':
-            return InsertQuery(query)
+            return InsertQuery.parse(query)
         elif operation == 'update ':
             return UpdateQuery(query)
         elif operation == 'delete ' and query[7:12] == 'from ':
@@ -62,7 +118,18 @@ class SqlQuery:
 
 
 class SelectQuery(SqlQuery):
-    def __init__(self, query):
+    def __init__(self, target: str or None, table: str or None, condition: 'Condition' or None):
+        super().__init__(table, condition)
+        self.target = target
+
+    def __str__(self):
+        s = "select %s from %s" % (self.target, self.table)
+        if self.conditions is not None:
+            s += " where %s" % self.conditions
+        return s
+
+    @staticmethod
+    def parse(query: str):
         from_match = re.search(" from ", query, flags=re.IGNORECASE)
         if not from_match:
             raise SqlException("Invalid query")
@@ -73,24 +140,46 @@ class SelectQuery(SqlQuery):
         where_match = re.search(" where ", query, flags=re.IGNORECASE)
         if not where_match:
             table = query
-            conditions = None
+            condition = None
         else:
             where_span = where_match.span()
             table = query[:where_span[0]]
-            conditions = Condition.parse(query[where_span[1]:])
+            condition = Condition.parse(query[where_span[1]:])
 
-        super().__init__(table, conditions)
-        self.target = target
+        return SelectQuery(target, table, condition)
+
+
+class JoinSelectQuery(SelectQuery):
+    def __init__(self, target, table, condition, extra_string):
+        super().__init__(target, table, condition)
+        self.extra_string = extra_string
 
     def __str__(self):
-        s = "select %s from %s" % (self.target, self.table)
+        s = "select %s from %s %s" % (self.target, self.table, self.extra_string)
         if self.conditions is not None:
             s += " where %s" % self.conditions
         return s
 
 
+class DummySelectQuery(SelectQuery):
+    def __init__(self, query: str):
+        super().__init__(None, None, None)
+        self.query = query
+
+    def __str__(self):
+        return self.query
+
+
 class InsertQuery(SqlQuery):
-    def __init__(self, query):
+    def __init__(self, table: str, values: tuple):
+        super().__init__(table, None)
+        self.values = values
+
+    def __str__(self):
+        return "insert into %s values %s" % (self.table, "(%s)" % (", ".join(self.values)))
+
+    @staticmethod
+    def parse(query):
         values_match = re.search(" values ", query, flags=re.IGNORECASE)
         if not values_match:
             raise SqlException("Invalid query")
@@ -100,11 +189,9 @@ class InsertQuery(SqlQuery):
         if values[0] != '(' or values[-1] != ')':
             raise SqlException("Invalid query")
         values = ("".join(values[1:-1].split())).split(",")
-        super().__init__(table, None)
-        self.values = tuple(values)
+        values = tuple(values)
 
-    def __str__(self):
-        return "insert into %s values %s" % (self.table, "(%s)" % (", ".join(self.values)))
+        return InsertQuery(table, values)
 
 
 class UpdateQuery(SqlQuery):
@@ -220,6 +307,10 @@ class SimpleCondition(Condition):
     def __str__(self) -> str:
         return "%s %s %s" % (self.lvalue, self.operator.value, self.rvalue)
 
+    def __eq__(self, other):
+        return type(other) is SimpleCondition and self.lvalue == other.lvalue and self.rvalue == other.rvalue \
+               and self.operator == other.operator
+
     class Op(Enum):
         EQUAL = '='
         GT = '>'
@@ -237,6 +328,10 @@ class BinaryCondition(Condition):
     def __str__(self):
         return "(%s) %s (%s)" % (self.lvalue, self.operator.value, self.rvalue)
 
+    def __eq__(self, other):
+        return type(other) is BinaryCondition and self.lvalue == other.lvalue and self.rvalue == other.rvalue \
+               and self.operator == other.operator
+
     class Op(Enum):
         AND = "AND"
         OR = "OR"
@@ -249,6 +344,9 @@ class UnaryCondition(Condition):
 
     def __str__(self):
         return "%s %s" % (self.operator.value, self.rvalue)
+
+    def __eq__(self, other):
+        return type(other) is UnaryCondition and self.rvalue == other.rvalue and self.operator == other.operator
 
     class Op(Enum):
         NOT = "NOT"
