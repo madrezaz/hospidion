@@ -1,6 +1,8 @@
 from typing import List
 
 from core.sql import *
+from outsourcing.filter import purify
+from outsourcing.integrity import IntegrityCheckQueryExecutor
 
 tables = {'users': [['username', 'password', 'type'], ['username', 'id', 'asl', 'rsl', 'wsl']],
           'physicians': [['personnel_id', 'first_name', 'last_name', 'national_code'],
@@ -10,7 +12,7 @@ tables = {'users': [['username', 'password', 'type'], ['username', 'id', 'asl', 
                      ['personnel_id', 'section', 'employment_date', 'age', 'gender', 'salary', 'married', 'msl', 'asl',
                       'csl']],
           'patients': [['reception_id', 'first_name', 'last_name', 'national_code'],
-                       ['reception_id', 'age', 'gender', 'sickness_type', 'section', 'physician_id', 'nurse_id',
+                       ['reception_id', 'age', 'gender', 'sickness_type', 'section', 'physician', 'nurse',
                         'drugs', 'msl', 'asl', 'csl']],
           'employees': [['personnel_id', 'first_name', 'last_name', 'national_code'],
                         ['personnel_id', 'role', 'section', 'employment_date', 'age', 'gender', 'salary', 'married',
@@ -22,8 +24,8 @@ tables = {'users': [['username', 'password', 'type'], ['username', 'id', 'asl', 
 
 class PartitioningQueryExecutor(QueryExecutor):
     def __init__(self, db_name, db_user, db_password, db_host, db_port):
-        self.executor1 = DefaultQueryExecutor(db_name + "_1", db_user, db_password, db_host, db_port)
-        self.executor2 = DefaultQueryExecutor(db_name + "_2", db_user, db_password, db_host, db_port)
+        self.executor1 = IntegrityCheckQueryExecutor(db_name + "_1", db_user, db_password, db_host, db_port)
+        self.executor2 = IntegrityCheckQueryExecutor(db_name + "_2", db_user, db_password, db_host, db_port)
 
     def execute_read(self, query: 'SelectQuery'):
         if query.conditions is not None:
@@ -33,8 +35,9 @@ class PartitioningQueryExecutor(QueryExecutor):
         else:
             l1 = self.executor1.execute_read(SelectQuery('*', query.table, None))
             l2 = self.executor2.execute_read(SelectQuery('*', query.table, None))
-        res = self.join_results(l1, l2, query.table)
-        return res
+        rows = self.join_results(l1, l2, query.table)
+        header = tuple(tables[query.table][0] + tables[query.table][1][1:])
+        return purify(rows, header, query)
 
     def execute_single_read(self, query: 'SelectQuery'):
         res = self.execute_read(query)
@@ -53,7 +56,7 @@ class PartitioningQueryExecutor(QueryExecutor):
             self.executor1.execute_write(q1)
             return self.executor2.execute_write(q2)
 
-            # check if table is reports shit
+            # check if table is reports
 
         raise SqlException("Not supported")
 
@@ -64,11 +67,13 @@ class PartitioningQueryExecutor(QueryExecutor):
         t1 = tuple(l2_pks - l1_pks)
         t2 = tuple(l1_pks - l2_pks)
         if len(t1) != 0:
+            s = str(t1) if len(t1) != 1 else str(t1).replace(',', '')
             l1 += self.executor1.execute_read(DummySelectQuery("select * from %s where %s in %s" %
-                                                               (table, tables[table][0][0], str(t1))))
+                                                               (table, tables[table][0][0], s)))
         if len(t2) != 0:
+            s = str(t2) if len(t2) != 1 else str(t2).replace(',', '')
             l2 += self.executor2.execute_read(DummySelectQuery("select * from %s where %s in %s" %
-                                                               (table, tables[table][0][0], str(t2))))
+                                                               (table, tables[table][0][0], s)))
         l2_dict = {}
         for row in l2:
             l2_dict[row[0]] = row

@@ -3,7 +3,8 @@ create table users (
     id varchar(10) not null,
     rsl smallint not null,
     asl smallint not null,
-    wsl smallint not null
+    wsl smallint not null,
+    hmac varchar(50) not null
 );
 
 create table physicians (
@@ -18,7 +19,8 @@ create table physicians (
     married bool not null,
     msl smallint not null,
     asl smallint not null,
-    csl smallint not null
+    csl smallint not null,
+    hmac varchar(50) not null
 );
 
 create table nurses (
@@ -31,7 +33,8 @@ create table nurses (
     married bool not null,
     msl smallint not null,
     asl smallint not null,
-    csl smallint not null
+    csl smallint not null,
+    hmac varchar(50) not null
 );
 
 create table patients (
@@ -45,7 +48,8 @@ create table patients (
     drugs text,
     msl smallint not null,
     asl smallint not null,
-    csl smallint not null
+    csl smallint not null,
+    hmac varchar(50) not null
 );
 
 create table employees (
@@ -59,7 +63,8 @@ create table employees (
     married bool not null,
     msl smallint not null,
     asl smallint not null,
-    csl smallint not null
+    csl smallint not null,
+    hmac varchar(50) not null
 );
 
 create table reports (
@@ -67,7 +72,8 @@ create table reports (
     report text,
     msl smallint not null,
     asl smallint not null,
-    csl smallint not null
+    csl smallint not null,
+    hmac varchar(50) not null
 );
 
 create table inspector_reports (
@@ -75,7 +81,8 @@ create table inspector_reports (
     report text,
     msl smallint not null,
     asl smallint not null,
-    csl smallint not null
+    csl smallint not null,
+    hmac varchar(50) not null
 );
 
 create table manager_reports (
@@ -83,8 +90,9 @@ create table manager_reports (
     report text,
     msl smallint not null,
     asl smallint not null,
-    csl smallint not null
+    csl smallint not null,
+    hmac varchar(50) not null
 );
 
-insert into employees values ('0', 'system_manager', 'hospital', '2019-12-19', 22, 'M', 20, false, 4, 4, 4);
-insert into users values ('root', '0', 4, 4, 3);
+insert into employees values ('0', 'system_manager', 'hospital', '2019-12-19', 22, 'M', 20, 'false', 4, 4, 4, 'tl8QUfrWBl95waThTcv2Dk+tA/tSm4F1OzPPOlSfVGI=');
+insert into users values ('root', '0', 4, 4, 3, 'j8H/kNgPiNAxn8HGEqIZR+gi5uL+qO83VMFpkARYDEM=');

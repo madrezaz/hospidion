@@ -22,7 +22,7 @@ def create_db_executor():
 
 def main():
     db_executor = create_db_executor()
-    print("***Welcome to Sharif [Mental]Hospital***")
+    print("***Welcome to Sharif Hospital***")
     session = None
     while session is None:
         username = input("Username: ")

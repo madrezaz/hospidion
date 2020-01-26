@@ -274,6 +274,9 @@ class Condition:
     def or_condition(self, cond: 'Condition') -> 'Condition':
         return BinaryCondition(self, BinaryCondition.Op.OR, cond)
 
+    def apply(self, row: tuple, header: tuple):
+        raise NotImplementedError()
+
     @staticmethod
     def parse(string) -> 'Condition':
         string = " " + string
@@ -304,6 +307,13 @@ class SimpleCondition(Condition):
         self.operator = operator
         self.rvalue = rvalue
 
+    def apply(self, row: tuple, header: tuple):
+        a = "%s %s %s" % (prepare(row[header.index(self.lvalue)]),
+                          '==' if self.operator == self.Op.EQUAL else self.operator.value,
+                          self.rvalue)
+        print(a)
+        return eval(a)
+
     def __str__(self) -> str:
         return "%s %s %s" % (self.lvalue, self.operator.value, self.rvalue)
 
@@ -325,6 +335,12 @@ class BinaryCondition(Condition):
         self.operator = operator
         self.rvalue = rvalue
 
+    def apply(self, row: tuple, header: tuple):
+        if self.operator == self.Op.AND:
+            return self.lvalue.apply(row, header) and self.rvalue.apply(row, header)
+        else:
+            return self.lvalue.apply(row, header) or self.rvalue.apply(row, header)
+
     def __str__(self):
         return "(%s) %s (%s)" % (self.lvalue, self.operator.value, self.rvalue)
 
@@ -341,6 +357,9 @@ class UnaryCondition(Condition):
     def __init__(self, operator, rvalue: Condition):
         self.operator = operator
         self.rvalue = rvalue
+
+    def apply(self, row: tuple, header: tuple):
+        return not self.rvalue.apply(row, header)
 
     def __str__(self):
         return "%s %s" % (self.operator.value, self.rvalue)

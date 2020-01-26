@@ -70,12 +70,14 @@ class DionExecutor:
         self_cond = SimpleCondition(model.columns[0], SimpleCondition.Op.EQUAL, prepare(self.session.entity[0]))
 
         if type(query) is SelectQuery:
-            query.and_condition(self.read_condition)
+            rc = self.read_condition
+            if self_query:
+                rc = rc.or_condition(self_cond)
+            query.and_condition(rc)
+
             if exception5:
                 query.and_condition(SimpleCondition('nurse', SimpleCondition.Op.EQUAL, prepare(self.session.entity[0])))
 
-            if self_query:
-                query.or_condition(self_cond)
             return self.__execute_read(query)
 
         elif type(query) is InsertQuery:

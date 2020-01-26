@@ -7,7 +7,8 @@ create table users (
     id_i smallint not null,
     rsl_i smallint not null,
     asl_i smallint not null,
-    wsl_i smallint not null
+    wsl_i smallint not null,
+    hmac varchar(50) not null
 );
 
 create table physicians (
@@ -23,7 +24,8 @@ create table physicians (
     married_i smallint not null,
     msl_i smallint not null,
     asl_i smallint not null,
-    csl_i smallint not null
+    csl_i smallint not null,
+    hmac varchar(50) not null
 );
 
 create table nurses (
@@ -38,7 +40,8 @@ create table nurses (
     married_i smallint not null,
     msl_i smallint not null,
     asl_i smallint not null,
-    csl_i smallint not null
+    csl_i smallint not null,
+    hmac varchar(50) not null
 );
 
 create table patients (
@@ -53,7 +56,8 @@ create table patients (
     nurse_i smallint not null,
     msl_i smallint not null,
     asl_i smallint not null,
-    csl_i smallint not null
+    csl_i smallint not null,
+    hmac varchar(50) not null
 );
 
 create table employees (
@@ -69,7 +73,8 @@ create table employees (
     married_i smallint not null,
     msl_i smallint not null,
     asl_i smallint not null,
-    csl_i smallint not null
+    csl_i smallint not null,
+    hmac varchar(50) not null
 );
 
 create table reports (
@@ -78,7 +83,8 @@ create table reports (
     username_i smallint not null,
     msl_i smallint not null,
     asl_i smallint not null,
-    csl_i smallint not null
+    csl_i smallint not null,
+    hmac varchar(50) not null
 );
 
 create table inspector_reports (
@@ -87,7 +93,8 @@ create table inspector_reports (
     username_i smallint not null,
     msl_i smallint not null,
     asl_i smallint not null,
-    csl_i smallint not null
+    csl_i smallint not null,
+    hmac varchar(50) not null
 );
 
 create table manager_reports (
@@ -96,5 +103,9 @@ create table manager_reports (
     username_i smallint not null,
     msl_i smallint not null,
     asl_i smallint not null,
-    csl_i smallint not null
+    csl_i smallint not null,
+    hmac varchar(50) not null
 );
+
+insert into employees values ('lNoB/Qz7sUwkmf3dXi5vVvNdTj+YQYOyQPsIj1H4IqMkBljPuJ9tMug6E7Vw8/+KHdrAEW95l/cNfjSRDMdTwLS8d6UYUBncI13xxqFwAYFPXqSguOOw77Qjcn0B6EylqxECdpwhDix7ejhFPwab8/tycTrQz/bG5wjA0FBzgkww3Q==', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '');
+insert into users values ('0jZKCFjduGMgnToqhC9Z2iKBnxX2eTOwPykMKjfaIcr1yAglHdaeHv+0F+FMSMBA1tw2DAne1frL8nETzceFGxKktUgGyEeL0u07Hw==', 0, 0, 0, 0, 0, 0, 0, '');
