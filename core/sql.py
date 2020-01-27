@@ -194,6 +194,15 @@ class InsertQuery(SqlQuery):
         return InsertQuery(table, values)
 
 
+class CInsertQuery(InsertQuery):
+    def __init__(self, table: str, header: str, values: tuple):
+        super().__init__(table, values)
+        self.header = header
+
+    def __str__(self):
+        return "insert into %s %s values %s" % (self.table, self.header, "(%s)" % (", ".join(self.values)))
+
+
 class UpdateQuery(SqlQuery):
     def __init__(self, query):
         set_match = re.search(" set ", query, flags=re.IGNORECASE)

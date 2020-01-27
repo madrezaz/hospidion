@@ -15,5 +15,6 @@ def create_session(executor: QueryExecutor, username, password=None):
         pk = tables[table].columns[0]
         q = SqlQuery.parse("select * from %s where %s = '%s'" % (table.value, pk, user[3]))
         entity = executor.execute_single_read(q)
+        print(entity)
         session = Session(user, entity)
     return session

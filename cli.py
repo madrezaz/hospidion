@@ -50,15 +50,9 @@ def main():
             print("Error:", ex.message)
         except SqlException as ex:
             print("Error:", ex.message)
-        except psycopg2._psycopg.Error as ex:
+        except (psycopg2._psycopg.Error, KeyError) as ex:
             print("Error: ", ex)
         query = input("$ ")
-
-
-def main2():
-    db = create_db_executor()
-    while True:
-        print(db.execute_read(SqlQuery.parse(input())))
 
 
 if __name__ == '__main__':

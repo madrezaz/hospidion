@@ -19,7 +19,7 @@ insert into users values ('akbar', '1', 'physicians', '19')
 insert into physicians values ('110', 'Arezoo', 'Arezooei', '110', 'special', 'administrative_vp', 'administrative', '2000-11-10', 30, 'M', 20, 'false')
 insert into users values ('arezoo', '1', 'physicians', '110')
 
-insert into nurses values ('21', 'Babak', 'Babaki', '21', 'general', '2000-11-10', 30, 'M', 20, true)
+insert into nurses values ('21', 'Babak', 'Babaki', '21', 'general', '2000-11-10', 30, 'M', 20, 'true')
 insert into users values ('babak', '1', 'nurses', '21')
 insert into nurses values ('22', 'Baran', 'Barani', '22', 'speciality', '2000-11-10', 30, 'F', 20, 'false')
 insert into users values ('baran', '1', 'nurses', '22')
