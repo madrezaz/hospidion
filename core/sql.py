@@ -41,7 +41,7 @@ class DefaultQueryExecutor:
         self.db_port = db_port
 
     def execute_read(self, query: 'SelectQuery'):
-        print("Default:", str(query))
+        print(str(query))
         con, cur = self.__get_db_connection()
         cur.execute(str(query))
         result = cur.fetchall()
@@ -50,7 +50,7 @@ class DefaultQueryExecutor:
         return result
 
     def execute_single_read(self, query: 'SelectQuery'):
-        print("Default:", str(query))
+        print(str(query))
         con, cur = self.__get_db_connection()
         cur.execute(str(query))
         result = cur.fetchone()
@@ -59,7 +59,7 @@ class DefaultQueryExecutor:
         return result
 
     def execute_write(self, query: 'SqlQuery'):
-        print("Default:", str(query))
+        print(str(query))
         con, cur = self.__get_db_connection()
         cur.execute(str(query))
         result = cur.rowcount
@@ -320,7 +320,16 @@ class SimpleCondition(Condition):
         a = "%s %s %s" % (prepare(row[header.index(self.lvalue)]),
                           '==' if self.operator == self.Op.EQUAL else self.operator.value,
                           self.rvalue)
-        print(a)
+        if self.rvalue == "'true'":
+            b = "%s %s %s" % (prepare(row[header.index(self.lvalue)]),
+                              '==' if self.operator == self.Op.EQUAL else self.operator.value,
+                              True)
+            return eval(a) or eval(b)
+        elif self.rvalue == "'false'":
+            b = "%s %s %s" % (prepare(row[header.index(self.lvalue)]),
+                              '==' if self.operator == self.Op.EQUAL else self.operator.value,
+                              False)
+            return eval(a) or eval(b)
         return eval(a)
 
     def __str__(self) -> str:

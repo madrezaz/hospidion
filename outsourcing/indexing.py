@@ -20,9 +20,9 @@ tables_index = {
         'management_role_i': [['a', 'f', 'k', 'p', 'u', 'z'], [27, 18, 42, 37, 150, 158, 5]],
         'section_i': [['a', 'f', 'k', 'p', 'u', 'z'], [17, 216, 172, 20, 122, 102, 83]],
         'age_i': [[20, 30, 40, 50, 60, 70], [230, 46, 198, 206, 244, 104, 9]],
-        'gender_i': [['m', 'f'], [0, 0, 1]],
+        'gender_i': [['f', 'm'], [1, 1, 0]],
         'salary_i': [[20000, 40000, 60000, 80000, 100000, 120000], [194, 65, 102, 105, 178, 23, 196]],
-        'married_i': [['t', 'f'], [186, 186, 85]],
+        'married_i': [['f', 't'], [85, 85, 186]],
         'msl_i': [[1, 2, 3, 4], [120, 120, 88, 103, 224]],
         'asl_i': [[1, 2, 3, 4], [230, 230, 115, 238, 27]],
         'csl_i': [[1, 2, 3, 4], [126, 126, 249, 95, 5]],
@@ -32,9 +32,9 @@ tables_index = {
         'national_code_i': [['0', '2', '4', '6', '8', ':'], [15, 186, 181, 87, 23, 146, 171]],
         'section_i': [['a', 'f', 'k', 'p', 'u', 'z'], [49, 120, 180, 38, 144, 14, 37]],
         'age_i': [[20, 30, 40, 50, 60, 70], [221, 27, 51, 66, 108, 30, 182]],
-        'gender_i': [['m', 'f'], [0, 0, 1]],
+        'gender_i': [['f', 'm'], [1, 1, 0]],
         'salary_i': [[20000, 40000, 60000, 80000, 100000, 120000], [214, 8, 25, 180, 122, 60, 139]],
-        'married_i': [['t', 'f'], [144, 144, 27]],
+        'married_i': [['f', 't'], [27, 27, 144]],
         'msl_i': [[1, 2, 3, 4], [144, 144, 27, 216, 168]],
         'asl_i': [[1, 2, 3, 4], [57, 57, 197, 146, 81]],
         'csl_i': [[1, 2, 3, 4], [137, 137, 36, 104, 108]],
@@ -45,9 +45,9 @@ tables_index = {
         'role_i': [['a', 'f', 'k', 'p', 'u', 'z'], [113, 206, 212, 238, 77, 100, 107]],
         'section_i': [['a', 'f', 'k', 'p', 'u', 'z'], [17, 98, 44, 1, 143, 179, 33]],
         'age_i': [[20, 30, 40, 50, 60, 70], [62, 189, 98, 56, 34, 78, 13]],
-        'gender_i': [['m', 'f'], [0, 0, 1]],
+        'gender_i': [['f', 'm'], [1, 1, 0]],
         'salary_i': [[20000, 40000, 60000, 80000, 100000, 120000], [145, 72, 95, 218, 247, 231, 29]],
-        'married_i': [['t', 'f'], [167, 167, 7]],
+        'married_i': [['f', 't'], [7, 7, 167]],
         'msl_i': [[1, 2, 3, 4], [167, 167, 7, 63, 170]],
         'asl_i': [[1, 2, 3, 4], [130, 30, 9, 139, 68]],
         'csl_i': [[1, 2, 3, 4], [75, 75, 218, 41, 188]],
@@ -56,7 +56,7 @@ tables_index = {
         'reception_id_i': [['0', '2', '4', '6', '8', ':'], [27, 162, 78, 1, 33, 143, 238]],
         'national_code_i': [['0', '2', '4', '6', '8', ':'], [186, 107, 91, 224, 185, 217, 140]],
         'age_i': [[20, 30, 40, 50, 60, 70], [199, 106, 109, 174, 230, 83, 193]],
-        'gender_i': [['m', 'f'], [0, 0, 1]],
+        'gender_i': [['f', 'm'], [1, 1, 0]],
         'section_i': [['a', 'f', 'k', 'p', 'u', 'z'], [24, 54, 29, 42, 224, 217, 55]],
         'physician_i': [['0', '2', '4', '6', '8', ':'], [192, 58, 215, 156, 61, 21, 199]],
         'nurse_i': [['0', '2', '4', '6', '8', ':'], [109, 200, 154, 115, 73, 15, 196]],
@@ -138,7 +138,6 @@ class IndexingQueryExecutor(IntegrityCheckQueryExecutor):
                 col = table_header[query.table][i] + "_i"
                 if col in tables_index[query.table]:
                     metadata = tables_index[query.table][col]
-                    print(val, ind)
                     i = self.value_index(ind, metadata)
                     nvalues[table_i_header[query.table].index(col)] = str(metadata[1][i])
             nvalues[0] = "'%s'" % encrypt_tuple(tuple(tup))
@@ -166,7 +165,6 @@ class IndexingQueryExecutor(IntegrityCheckQueryExecutor):
                         v = condition.rvalue
             else:
                 v = condition.rvalue
-            print(v)
             i = self.value_index(v, col_metadata)
             if condition.operator == SimpleCondition.Op.EQUAL:
                 return SimpleCondition(col, condition.operator, col_metadata[1][i])

@@ -26,8 +26,6 @@ class IntegrityCheckQueryExecutor(DefaultQueryExecutor):
 
     def execute_write(self, query: 'SqlQuery'):
         if isinstance(query, InsertQuery):
-            print(query.values)
-            print("(%s)" % (", ".join(query.values)))
             query.values += ("'%s'" % crypto.str_hmac("(%s)" % (", ".join(query.values))),)
             return super().execute_write(query)
         raise Exception("Not supported")
@@ -43,6 +41,5 @@ class IntegrityCheckQueryExecutor(DefaultQueryExecutor):
         if self.remove_first:
             lst = lst[1:]
         row = tuple(lst)
-        print(row)
         if not crypto.verify_hmac(str(row[:-1]), row[-1]):
             raise SqlException("Integrity check failed")
