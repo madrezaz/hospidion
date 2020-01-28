@@ -65,9 +65,13 @@ def login_required(func):
 @login_required
 def index(user_session):
     executor = create_executor(user_session)
-    privacy = executor.execute("my privacy")
-    readers = ", ".join([r[0] for r in privacy.readers])
-    writers = ", ".join([r[0] for r in privacy.writers])
+    try:
+        privacy = executor.execute("my privacy")
+        readers = ", ".join([r[0] for r in privacy.readers])
+        writers = ", ".join([r[0] for r in privacy.writers])
+    except Exception:
+        readers = " "
+        writers = " "
     return render_template('index.html', readers=readers, writers=writers, user_session=user_session)
 
 
