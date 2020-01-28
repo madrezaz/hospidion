@@ -1,0 +1,17 @@
+outsourced = 1
+
+if outsourced == 0:
+    db_name = 'hospidion'
+elif outsourced == 1:
+    db_name = 'hospidion_indexing'
+elif outsourced == 2:
+    db_name = 'hospidion_partitioning'
+
+db_user = 'hospidion'
+db_password = '123456'
+db_host = 'localhost'
+db_port = 5432
+
+secret = b'?4Yq\x08\x06$\xa7S=\xa5\xdaeyS\xcc'
+encryption_key = b'\xfb\xbb\xb8\x17\xd5l\x07\xff\xab\xdd\x06\xda\r\\\x1e\xa8\x8ep\xff\x9c\xb3\x83\xb8\xd2\x03\x87\xc5\xdf\xa6\xe8\x13M'
+hmac_key = b'\x08\xdb\x8e\xc3=\x03/\xa2\xfe\xcd\xe4\x04\xf4e\xe9\x0c\xa2\xb2O4G>fK\xab\x95-\xb8\x9d\x08\xbf\x8e'
